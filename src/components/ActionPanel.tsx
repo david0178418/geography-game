@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useGameWorld } from "@/contexts/GameContext.ts";
 import { useEcsResource } from "@/hooks/useEcsResource.ts";
+import { getAvailableInfluenceBudget } from "@/ecs/influenceBudget.ts";
 import type { Order } from "@/types/ecs.ts";
 
 function orderToId(order: Order): string {
@@ -14,6 +15,7 @@ function ActionPanel() {
 	const factions = useEcsResource("factions");
 	const countryEntityMap = useEcsResource("countryEntityMap");
 	const pendingOrders = useEcsResource("pendingOrders");
+	const influenceBudgets = useEcsResource("influenceBudgets");
 
 	const [moveTarget, setMoveTarget] = useState<string | null>(null);
 	const [moveAmount, setMoveAmount] = useState(1);
@@ -46,6 +48,7 @@ function ActionPanel() {
 		.reduce((sum, o) => sum + o.amount, 0);
 
 	const availableTroops = troops.count - committedTroops;
+	const availableBudget = getAvailableInfluenceBudget(playerFactionId, pendingOrders, influenceBudgets);
 
 	function queueOrder(order: Order) {
 		const orderId = orderToId(order);
@@ -79,7 +82,7 @@ function ActionPanel() {
 	}
 
 	function handleSpendInfluence() {
-		if (!influenceTarget || influenceAmount <= 0) return;
+		if (!influenceTarget || influenceAmount <= 0 || influenceAmount > availableBudget) return;
 		queueOrder({
 			type: "influence",
 			sourceCountryId: countryId,
@@ -124,7 +127,7 @@ function ActionPanel() {
 			</div>
 
 			<div className="action-section">
-				<h4>Spend Influence</h4>
+				<h4>Spend Influence ({availableBudget} available)</h4>
 				<select
 					value={influenceTarget ?? ""}
 					onChange={(e) => setInfluenceTarget(e.target.value || null)}
@@ -137,12 +140,14 @@ function ActionPanel() {
 				<input
 					type="number"
 					min={1}
+					max={Math.max(1, availableBudget)}
 					value={influenceAmount}
 					onChange={(e) => setInfluenceAmount(Number(e.target.value))}
+					disabled={availableBudget <= 0}
 				/>
 				<button
 					onClick={handleSpendInfluence}
-					disabled={!influenceTarget || influenceAmount <= 0}
+					disabled={!influenceTarget || influenceAmount <= 0 || influenceAmount > availableBudget}
 				>
 					Assign
 				</button>

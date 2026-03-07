@@ -108,4 +108,10 @@ function getBlocsForCountry(countryCode: string): ReadonlyArray<string> {
 	return countryToBlocs[countryCode] ?? [];
 }
 
-export { blocMemberships, getBlocsForCountry };
+function hasSharedBloc(countryA: string, countryB: string): boolean {
+	const blocsA = getBlocsForCountry(countryA);
+	const blocsB = getBlocsForCountry(countryB);
+	return blocsA.some((b) => blocsB.includes(b));
+}
+
+export { blocMemberships, getBlocsForCountry, hasSharedBloc };

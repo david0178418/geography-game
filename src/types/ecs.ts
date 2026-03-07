@@ -49,6 +49,7 @@ export interface GameResources {
 	readonly selectedCountryId: string | null;
 	readonly pendingOrders: ReadonlyMap<string, Order>;
 	readonly countryEntityMap: ReadonlyMap<string, number>; // countryId -> entityId
+	readonly influenceBudgets: ReadonlyMap<string, number>; // factionId -> budget points
 }
 
 // ECS Event Types
@@ -59,7 +60,7 @@ export interface GameEvents {
 	readonly phaseChanged: { readonly phase: TurnPhase };
 	readonly orderSubmitted: { readonly order: Order };
 	readonly turnResolved: { readonly turnNumber: number };
-	readonly combatResolved: { readonly countryId: string; readonly winnerId: string | null };
+	readonly combatResolved: { readonly countryId: string; readonly winnerId: string | null; readonly conquered: boolean };
 }
 
 // ECS Component Map (for ecspresso generic)

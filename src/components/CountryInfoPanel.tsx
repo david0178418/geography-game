@@ -1,6 +1,7 @@
 import { useGameWorld } from "@/contexts/GameContext.ts";
 import { useEcsResource } from "@/hooks/useEcsResource.ts";
 import { getBlocsForCountry } from "@/data/blocs.ts";
+import { getControlStateForCountry } from "@/ecs/controlStates.ts";
 
 function CountryInfoPanel() {
 	const world = useGameWorld();
@@ -20,6 +21,7 @@ function CountryInfoPanel() {
 	if (!country || !control || !troops || !stability || !influence || !adjacency) return null;
 	const controllingFaction = factions.find((f) => f.id === control.factionId);
 	const blocs = getBlocsForCountry(country.countryId);
+	const controlState = getControlStateForCountry(influence.factionInfluence, stability.current);
 
 	function handleAdjacentClick(neighborId: string) {
 		world.setResource("selectedCountryId", neighborId);
@@ -52,6 +54,14 @@ function CountryInfoPanel() {
 					)}
 				</span>
 			</div>
+			{controlState.dominantFactionId && (
+				<div className="info-row">
+					<span className="info-label">Influence Status</span>
+					<span>
+						{controlState.state} ({factions.find((f) => f.id === controlState.dominantFactionId)?.name ?? controlState.dominantFactionId})
+					</span>
+				</div>
+			)}
 			<div className="info-row">
 				<span className="info-label">Troops</span>
 				<span>{troops.count}</span>

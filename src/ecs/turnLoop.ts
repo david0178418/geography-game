@@ -1,6 +1,10 @@
 import type { TurnPhase, TroopsComponent, ControlComponent } from "@/types/ecs.ts";
 import type { GameWorld } from "./world.ts";
 import { calculateSupplyDistances, getSupplyMultiplier } from "./supplyLines.ts";
+import { resolveInfluence } from "./influenceResolution.ts";
+import { resolveStabilityRecovery, registerStabilityHandlers } from "./stabilityModifiers.ts";
+import { registerBlocHandlers } from "./blocEffects.ts";
+import { computeInfluenceBudgets } from "./influenceBudget.ts";
 
 const phaseTransitions: Readonly<Record<TurnPhase, TurnPhase>> = {
 	planning: "resolution",
@@ -207,7 +211,7 @@ function finalizeCombat(
 			factionId: null,
 			annexed: false,
 		});
-		world.eventBus.publish("combatResolved", { countryId, winnerId: null });
+		world.eventBus.publish("combatResolved", { countryId, winnerId: null, conquered: false });
 		return;
 	}
 
@@ -219,11 +223,12 @@ function finalizeCombat(
 			count: winner.troops,
 			contestedTroops: {},
 		});
+		const conquered = currentControl.factionId !== winner.factionId;
 		world.entityManager.addComponent(entityId, "control", {
 			factionId: winner.factionId,
 			annexed: currentControl.factionId === winner.factionId ? currentControl.annexed : false,
 		});
-		world.eventBus.publish("combatResolved", { countryId, winnerId: winner.factionId });
+		world.eventBus.publish("combatResolved", { countryId, winnerId: winner.factionId, conquered });
 		return;
 	}
 
@@ -243,7 +248,7 @@ function finalizeCombat(
 		count: newCount,
 		contestedTroops: newContested,
 	});
-	world.eventBus.publish("combatResolved", { countryId, winnerId: null });
+	world.eventBus.publish("combatResolved", { countryId, winnerId: null, conquered: false });
 }
 
 function resolveReinforcement(world: GameWorld): void {
@@ -307,14 +312,17 @@ function registerTurnSystems(world: GameWorld): void {
 		.runWhenEmpty()
 		.setProcess(() => resolveCombat(world));
 
-	// Influence system (priority 20) - stub for now
+	// Influence system (priority 20)
 	world.addSystem("resolution:influence")
 		.setPriority(20)
 		.runWhenEmpty()
-		.setProcess(({ ecs }) => {
-			const phase = ecs.getResource("currentPhase");
-			if (phase !== "resolution") return;
-		});
+		.setProcess(() => resolveInfluence(world));
+
+	// Stability recovery system (priority 15)
+	world.addSystem("resolution:stability")
+		.setPriority(15)
+		.runWhenEmpty()
+		.setProcess(() => resolveStabilityRecovery(world));
 
 	// Reinforcement system (priority 10)
 	world.addSystem("resolution:reinforcement")
@@ -333,11 +341,12 @@ function registerTurnSystems(world: GameWorld): void {
 			}
 		});
 
-	// Handle endTurn event: transition from planning to resolution
+	// Handle endTurn event: transition from planning to resolution, then run systems
 	world.on("endTurn", () => {
 		const phase = world.getResource("currentPhase");
 		if (phase !== "planning") return;
 		advancePhase(world);
+		world.update(0);
 	});
 
 	// Handle notification -> planning transition
@@ -351,8 +360,16 @@ function registerTurnSystems(world: GameWorld): void {
 		world.updateResource("turnNumber", (n) => n + 1);
 		world.setResource("currentPhase", "planning");
 		world.setResource("pendingOrders", new Map());
+		world.setResource("influenceBudgets", computeInfluenceBudgets(world));
 		world.eventBus.publish("phaseChanged", { phase: "planning" });
 	});
+
+	// Register event-driven handlers
+	registerStabilityHandlers(world);
+	registerBlocHandlers(world);
+
+	// Compute initial influence budgets
+	world.setResource("influenceBudgets", computeInfluenceBudgets(world));
 }
 
 function advancePhase(world: GameWorld): void {

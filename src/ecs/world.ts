@@ -13,6 +13,7 @@ function createWorld() {
 		.withResource("selectedCountryId", null)
 		.withResource("pendingOrders", new Map())
 		.withResource("countryEntityMap", new Map())
+		.withResource("influenceBudgets", new Map())
 		.build();
 }
 
