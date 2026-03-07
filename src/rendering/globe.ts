@@ -1,7 +1,7 @@
 import { geoGraticule10 } from "d3-geo";
 import type { GeoPath } from "d3-geo";
-import { countriesFeatureCollection } from "../data/countries.ts";
-import type { GlobeContext } from "./types.ts";
+import { countriesFeatureCollection, featureIdToAlpha3 } from "../data/countries.ts";
+import type { GlobeContext, GlobeHighlight } from "./types.ts";
 
 const graticule = geoGraticule10();
 
@@ -18,18 +18,38 @@ function drawOcean(ctx: CanvasRenderingContext2D, globe: GlobeContext): void {
 	ctx.fill();
 }
 
+const featureAlpha3Cache = new Map<string | number, string | null>(
+	countriesFeatureCollection.features.map((f) => [f.id ?? "", featureIdToAlpha3(f.id)]),
+);
+
 function drawCountries(
 	ctx: CanvasRenderingContext2D,
 	pathGenerator: GeoPath,
 	config: GlobeContext["config"],
+	highlight: GlobeHighlight,
 ): void {
-	ctx.beginPath();
-	pathGenerator(countriesFeatureCollection);
-	ctx.fillStyle = config.baseColor;
-	ctx.fill();
-	ctx.strokeStyle = config.borderColor;
-	ctx.lineWidth = 0.5;
-	ctx.stroke();
+	countriesFeatureCollection.features.forEach((feature) => {
+		const alpha3 = featureAlpha3Cache.get(feature.id ?? "") ?? null;
+		const isSelected = alpha3 !== null && alpha3 === highlight.selectedCountryId;
+		const isHovered = alpha3 !== null && alpha3 === highlight.hoveredCountryId;
+		const factionId = alpha3 !== null ? highlight.factionControlMap.get(alpha3) : undefined;
+
+		const fillColor = isSelected
+			? config.selectedColor
+			: isHovered
+				? config.hoveredColor
+				: factionId
+					? (config.factionColors[factionId] ?? config.baseColor)
+					: config.baseColor;
+
+		ctx.beginPath();
+		pathGenerator(feature);
+		ctx.fillStyle = fillColor;
+		ctx.fill();
+		ctx.strokeStyle = config.borderColor;
+		ctx.lineWidth = 0.5;
+		ctx.stroke();
+	});
 }
 
 function drawGraticule(
@@ -44,10 +64,23 @@ function drawGraticule(
 	ctx.stroke();
 }
 
-export function renderGlobe(globe: GlobeContext, pathGenerator: GeoPath): void {
+const DEFAULT_HIGHLIGHT: GlobeHighlight = {
+	selectedCountryId: null,
+	hoveredCountryId: null,
+	factionControlMap: new Map(),
+};
+
+function renderGlobe(
+	globe: GlobeContext,
+	pathGenerator: GeoPath,
+	highlight: GlobeHighlight = DEFAULT_HIGHLIGHT,
+): void {
 	const { ctx, state, config } = globe;
 	ctx.clearRect(0, 0, state.width, state.height);
 	drawOcean(ctx, globe);
-	drawCountries(ctx, pathGenerator, config);
+	drawCountries(ctx, pathGenerator, config, highlight);
 	drawGraticule(ctx, pathGenerator, config);
 }
+
+export { renderGlobe };
+export type { GlobeHighlight };

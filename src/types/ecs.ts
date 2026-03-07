@@ -53,6 +53,7 @@ export interface GameResources {
 
 export interface GameEvents {
 	readonly endTurn: undefined;
+	readonly countryClicked: { readonly countryId: string | null };
 	readonly phaseChanged: { readonly phase: TurnPhase };
 	readonly orderSubmitted: { readonly order: Order };
 	readonly turnResolved: { readonly turnNumber: number };
