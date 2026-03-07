@@ -5,8 +5,27 @@ type RedrawFn = () => void;
 const ROTATION_SENSITIVITY = 0.3;
 const ZOOM_SENSITIVITY = 0.5;
 
+function applyRotationDelta(globe: GlobeContext, dx: number, dy: number): void {
+	globe.state = {
+		...globe.state,
+		rotation: [
+			globe.state.rotation[0] + dx * ROTATION_SENSITIVITY,
+			Math.max(-90, Math.min(90, globe.state.rotation[1] - dy * ROTATION_SENSITIVITY)),
+		] as const,
+	};
+}
+
+function createScheduledRedraw(redraw: RedrawFn): () => void {
+	let frameId = 0;
+	return () => {
+		cancelAnimationFrame(frameId);
+		frameId = requestAnimationFrame(redraw);
+	};
+}
+
 export function setupDragRotation(globe: GlobeContext, redraw: RedrawFn): () => void {
 	const canvas = globe.canvas;
+	const scheduledRedraw = createScheduledRedraw(redraw);
 	let isDragging = false;
 	let lastX = 0;
 	let lastY = 0;
@@ -23,15 +42,8 @@ export function setupDragRotation(globe: GlobeContext, redraw: RedrawFn): () => 
 		const dy = e.clientY - lastY;
 		lastX = e.clientX;
 		lastY = e.clientY;
-
-		globe.state = {
-			...globe.state,
-			rotation: [
-				globe.state.rotation[0] + dx * ROTATION_SENSITIVITY,
-				Math.max(-90, Math.min(90, globe.state.rotation[1] - dy * ROTATION_SENSITIVITY)),
-			] as const,
-		};
-		redraw();
+		applyRotationDelta(globe, dx, dy);
+		scheduledRedraw();
 	}
 
 	function onMouseUp(): void {
@@ -56,15 +68,8 @@ export function setupDragRotation(globe: GlobeContext, redraw: RedrawFn): () => 
 		const dy = touch.clientY - lastY;
 		lastX = touch.clientX;
 		lastY = touch.clientY;
-
-		globe.state = {
-			...globe.state,
-			rotation: [
-				globe.state.rotation[0] + dx * ROTATION_SENSITIVITY,
-				Math.max(-90, Math.min(90, globe.state.rotation[1] - dy * ROTATION_SENSITIVITY)),
-			] as const,
-		};
-		redraw();
+		applyRotationDelta(globe, dx, dy);
+		scheduledRedraw();
 		e.preventDefault();
 	}
 
@@ -90,6 +95,8 @@ export function setupDragRotation(globe: GlobeContext, redraw: RedrawFn): () => 
 }
 
 export function setupScrollZoom(globe: GlobeContext, redraw: RedrawFn): () => void {
+	const scheduledRedraw = createScheduledRedraw(redraw);
+
 	function onWheel(e: WheelEvent): void {
 		e.preventDefault();
 		const delta = -e.deltaY * ZOOM_SENSITIVITY;
@@ -102,7 +109,7 @@ export function setupScrollZoom(globe: GlobeContext, redraw: RedrawFn): () => vo
 			...globe.state,
 			scale: newScale,
 		};
-		redraw();
+		scheduledRedraw();
 	}
 
 	globe.canvas.addEventListener("wheel", onWheel, { passive: false });

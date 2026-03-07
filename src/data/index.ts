@@ -18,29 +18,32 @@ import { getBlocsForCountry } from "./blocs.ts";
  * - Bloc memberships
  * - Base stability values (randomized deterministically from country code)
  */
+function computeStability(id: string): number {
+	const hash = id.charCodeAt(0) + id.charCodeAt(1) + id.charCodeAt(2);
+	return 30 + (hash % 51); // range 30-80
+}
+
+const countryData: ReadonlyArray<CountryData> = getCountryFeatures().map(({ id, name }) => {
+	const capital = capitals[id];
+	const neighbors = adjacency[id] ?? [];
+	const blocs = getBlocsForCountry(id);
+
+	const capitalData = capital
+		? { name: capital.name, coordinates: capital.coordinates as [number, number] }
+		: { name: "Unknown", coordinates: [0, 0] as [number, number] };
+
+	return {
+		id,
+		name,
+		capital: capitalData,
+		stability: computeStability(id),
+		blocs: [...blocs],
+		adjacency: [...neighbors],
+	};
+});
+
 function getCountryData(): ReadonlyArray<CountryData> {
-	return getCountryFeatures().map(({ id, name }) => {
-		const capital = capitals[id];
-		const neighbors = adjacency[id] ?? [];
-		const blocs = getBlocsForCountry(id);
-
-		// Deterministic base stability derived from the country code's char codes
-		const stabilityHash = id.split("").reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
-		const stability = 30 + (stabilityHash % 51); // range 30-80
-
-		const capitalData = capital
-			? { name: capital.name, coordinates: [...capital.coordinates] as [number, number] }
-			: { name: "Unknown", coordinates: [0, 0] as [number, number] };
-
-		return {
-			id,
-			name,
-			capital: capitalData,
-			stability,
-			blocs: [...blocs],
-			adjacency: [...neighbors],
-		};
-	});
+	return countryData;
 }
 
 export { getCountryData };

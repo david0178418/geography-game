@@ -1,13 +1,17 @@
 import { DEFAULT_CONFIG } from "./types.ts";
 import type { GlobeContext, GlobeState } from "./types.ts";
-import { createProjection, updateProjection, createPathGenerator } from "./projection.ts";
+import { createProjection, applyState, createPathGenerator } from "./projection.ts";
 import { renderGlobe } from "./globe.ts";
 import { setupDragRotation, setupScrollZoom } from "./interactions.ts";
+
+function scaleFromDimensions(width: number, height: number): number {
+	return Math.min(width, height) / 2.5;
+}
 
 function createInitialState(canvas: HTMLCanvasElement): GlobeState {
 	return {
 		rotation: [0, -20] as const,
-		scale: Math.min(canvas.width, canvas.height) / 2.5,
+		scale: scaleFromDimensions(canvas.width, canvas.height),
 		width: canvas.width,
 		height: canvas.height,
 	};
@@ -32,21 +36,26 @@ export function initGlobe(canvas: HTMLCanvasElement): () => void {
 		state: initialState,
 	};
 
+	const pathGenerator = createPathGenerator(globe.projection, globe.ctx);
+
 	function redraw(): void {
-		updateProjection(globe.projection, globe.state);
-		const pathGenerator = createPathGenerator(globe.projection, globe.ctx);
+		applyState(globe.projection, globe.state);
 		renderGlobe(globe, pathGenerator);
 	}
 
+	let resizeFrameId = 0;
 	function onResize(): void {
-		resize();
-		globe.state = {
-			...globe.state,
-			width: canvas.width,
-			height: canvas.height,
-			scale: Math.min(canvas.width, canvas.height) / 2.5,
-		};
-		redraw();
+		cancelAnimationFrame(resizeFrameId);
+		resizeFrameId = requestAnimationFrame(() => {
+			resize();
+			globe.state = {
+				...globe.state,
+				width: canvas.width,
+				height: canvas.height,
+				scale: scaleFromDimensions(canvas.width, canvas.height),
+			};
+			redraw();
+		});
 	}
 
 	window.addEventListener("resize", onResize);
@@ -57,6 +66,7 @@ export function initGlobe(canvas: HTMLCanvasElement): () => void {
 	redraw();
 
 	return () => {
+		cancelAnimationFrame(resizeFrameId);
 		window.removeEventListener("resize", onResize);
 		cleanupDrag();
 		cleanupZoom();

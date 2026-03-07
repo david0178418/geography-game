@@ -86,15 +86,20 @@ const blocMemberships: Record<string, ReadonlyArray<string>> = {
  * Pre-built reverse index: country code -> bloc IDs.
  * Computed once at module load for O(1) lookup.
  */
-const countryToBlocs: Record<string, ReadonlyArray<string>> = Object.entries(blocMemberships)
-	.flatMap(([blocId, members]) => members.map((code) => [code, blocId] as const))
-	.reduce<Record<string, string[]>>(
-		(acc, [code, blocId]) => {
-			const existing = acc[code] ?? [];
-			return { ...acc, [code]: [...existing, blocId] };
-		},
-		{},
-	);
+const countryToBlocs: Record<string, ReadonlyArray<string>> = (() => {
+	const result: Record<string, string[]> = {};
+	Object.entries(blocMemberships).forEach(([blocId, members]) => {
+		members.forEach((code) => {
+			const existing = result[code];
+			if (existing) {
+				existing.push(blocId);
+			} else {
+				result[code] = [blocId];
+			}
+		});
+	});
+	return result;
+})();
 
 /**
  * Returns the bloc IDs that a given country belongs to.

@@ -198,24 +198,28 @@ const countriesFeatureCollection = feature(
 const countryFeatures: ReadonlyArray<{
 	id: string;
 	name: string;
-}> = countriesFeatureCollection.features
-	.map((f) => {
-		const numericId = String(f.id ?? "");
-		const paddedId = numericId.padStart(3, "0");
-		const entry = numericToAlpha3[paddedId] ?? numericToAlpha3[numericId];
+}> = (() => {
+	const seen = new Set<string>();
+	return countriesFeatureCollection.features
+		.map((f) => {
+			const numericId = String(f.id ?? "");
+			const paddedId = numericId.padStart(3, "0");
+			const entry = numericToAlpha3[paddedId] ?? numericToAlpha3[numericId];
 
-		if (!entry) {
-			return null;
-		}
+			if (!entry || seen.has(entry.alpha3)) {
+				return null;
+			}
+			seen.add(entry.alpha3);
 
-		return {
-			id: entry.alpha3,
-			name: entry.name,
-		};
-	})
-	.filter(
-		(x): x is { id: string; name: string } => x !== null,
-	);
+			return {
+				id: entry.alpha3,
+				name: entry.name,
+			};
+		})
+		.filter(
+			(x): x is { id: string; name: string } => x !== null,
+		);
+})();
 
 /**
  * Returns all country features with ISO alpha-3 code and name.
