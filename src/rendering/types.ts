@@ -23,7 +23,7 @@ export type GlobeContext = {
 	readonly canvas: HTMLCanvasElement;
 	readonly ctx: CanvasRenderingContext2D;
 	readonly projection: GeoProjection;
-	readonly config: GlobeConfig;
+	config: GlobeConfig;
 	state: GlobeState;
 };
 

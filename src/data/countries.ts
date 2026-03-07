@@ -1,6 +1,8 @@
 import { feature } from "topojson-client";
-import topology from "world-atlas/countries-110m.json";
+import topologyJson from "world-atlas/countries-110m.json";
 import type { Topology, GeometryCollection } from "topojson-specification";
+
+const topology = topologyJson as unknown as Topology;
 
 /**
  * Mapping from ISO 3166-1 numeric codes (as used by Natural Earth / world-atlas)
@@ -187,8 +189,8 @@ const numericToAlpha3: Record<string, { alpha3: string; name: string }> = {
 } as const;
 
 const countriesFeatureCollection = feature(
-	topology as unknown as Topology,
-	(topology as unknown as Topology).objects.countries as GeometryCollection,
+	topology,
+	topology.objects['countries'] as GeometryCollection,
 );
 
 /**
