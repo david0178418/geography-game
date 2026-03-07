@@ -1,1 +1,3 @@
 ecspresso is a game library that is developed by the owner of this application. You may read the documents at either ../ecspresso or https://david0178418.github.io/ecspresso/ 
+
+If at any point the library is introducing unnecessary friction due to a feature implementation or is missing a feature that would simplify the project, raise these observations for consideration into future versions of ecspresso
