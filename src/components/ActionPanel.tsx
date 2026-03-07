@@ -29,13 +29,11 @@ function ActionPanel() {
 	const entityId = countryEntityMap.get(countryId);
 	if (entityId === undefined) return null;
 
-	const entities = world.getEntitiesWithQuery(
-		["country", "control", "troops", "adjacency"],
-	);
-	const entity = entities.find((e) => e.id === entityId);
+	const entity = world.getEntity(entityId);
 	if (!entity) return null;
 
 	const { control, troops, adjacency } = entity.components;
+	if (!control || !troops || !adjacency) return null;
 
 	if (control.factionId !== playerFaction.id) return null;
 

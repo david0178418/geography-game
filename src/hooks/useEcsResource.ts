@@ -6,11 +6,8 @@ function useEcsResource<K extends keyof GameResources>(key: K): GameResources[K]
 	const world = useGameWorld();
 
 	const subscribe = useCallback(
-		(onStoreChange: () => void) => {
-			const interval = setInterval(onStoreChange, 100);
-			return () => clearInterval(interval);
-		},
-		[],
+		(onStoreChange: () => void) => world.onResourceChange(key, onStoreChange),
+		[world, key],
 	);
 
 	const getSnapshot = useCallback(

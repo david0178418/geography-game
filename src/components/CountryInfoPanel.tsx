@@ -13,18 +13,16 @@ function CountryInfoPanel() {
 	const entityId = countryEntityMap.get(selectedCountryId);
 	if (entityId === undefined) return null;
 
-	const entities = world.getEntitiesWithQuery(
-		["country", "control", "troops", "stability", "influence", "adjacency"],
-	);
-	const entity = entities.find((e) => e.id === entityId);
+	const entity = world.getEntity(entityId);
 	if (!entity) return null;
 
 	const { country, control, troops, stability, influence, adjacency } = entity.components;
+	if (!country || !control || !troops || !stability || !influence || !adjacency) return null;
 	const controllingFaction = factions.find((f) => f.id === control.factionId);
 	const blocs = getBlocsForCountry(country.countryId);
 
 	function handleAdjacentClick(neighborId: string) {
-		world.updateResource("selectedCountryId", () => neighborId);
+		world.setResource("selectedCountryId", neighborId);
 	}
 
 	const influenceEntries = Object.entries(influence.factionInfluence)

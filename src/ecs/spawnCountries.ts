@@ -51,7 +51,7 @@ function spawnCountries(world: GameWorld): void {
 		countryEntityMap.set(c.id, entity.id);
 	});
 
-	world.updateResource("countryEntityMap", () => countryEntityMap);
+	world.setResource("countryEntityMap", countryEntityMap);
 }
 
 export { spawnCountries };

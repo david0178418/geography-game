@@ -1,17 +1,18 @@
 import ECSpresso from "ecspresso";
-import type { GameComponents, GameEvents, GameResources, TurnPhase } from "@/types/ecs.ts";
+import type { GameComponents, GameEvents, GameResources } from "@/types/ecs.ts";
 import { getDefaultFactions } from "./factions.ts";
 
 function createWorld() {
 	return ECSpresso.create()
 		.withComponentTypes<GameComponents>()
 		.withEventTypes<GameEvents>()
+		.withResourceTypes<GameResources>()
 		.withResource("turnNumber", 1)
-		.withResource("currentPhase" as const, "planning" as TurnPhase)
-		.withResource("factions" as const, getDefaultFactions())
-		.withResource("selectedCountryId" as const, null as string | null)
-		.withResource("pendingOrders" as const, new Map() as GameResources["pendingOrders"])
-		.withResource("countryEntityMap" as const, new Map() as GameResources["countryEntityMap"])
+		.withResource("currentPhase", "planning")
+		.withResource("factions", getDefaultFactions())
+		.withResource("selectedCountryId", null)
+		.withResource("pendingOrders", new Map())
+		.withResource("countryEntityMap", new Map())
 		.build();
 }
 

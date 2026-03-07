@@ -349,8 +349,8 @@ function registerTurnSystems(world: GameWorld): void {
 		world.eventBus.publish("turnResolved", { turnNumber });
 
 		world.updateResource("turnNumber", (n) => n + 1);
-		world.updateResource("currentPhase", () => "planning" as TurnPhase);
-		world.updateResource("pendingOrders", () => new Map());
+		world.setResource("currentPhase", "planning");
+		world.setResource("pendingOrders", new Map());
 		world.eventBus.publish("phaseChanged", { phase: "planning" });
 	});
 }
@@ -358,7 +358,7 @@ function registerTurnSystems(world: GameWorld): void {
 function advancePhase(world: GameWorld): void {
 	const current = world.getResource("currentPhase");
 	const next = phaseTransitions[current];
-	world.updateResource("currentPhase", () => next);
+	world.setResource("currentPhase", next);
 	world.eventBus.publish("phaseChanged", { phase: next });
 }
 

@@ -105,7 +105,7 @@ function App() {
 		}
 
 		handle.onCountryClick((countryId) => {
-			world.updateResource("selectedCountryId", () => countryId);
+			world.setResource("selectedCountryId", countryId);
 			world.eventBus.publish("countryClicked", { countryId });
 			redrawWithHighlight();
 		});
