@@ -24,7 +24,8 @@ function ActionPanel() {
 
 	if (!selectedCountryId || currentPhase !== "planning" || !playerFaction) return null;
 
-	const entityId = countryEntityMap.get(selectedCountryId);
+	const countryId = selectedCountryId;
+	const entityId = countryEntityMap.get(countryId);
 	if (entityId === undefined) return null;
 
 	const entities = world.getEntitiesWithQuery(
@@ -38,7 +39,7 @@ function ActionPanel() {
 	if (control.factionId !== playerFaction.id) return null;
 
 	const ordersForCountry = [...pendingOrders.values()].filter(
-		(o) => o.sourceCountryId === selectedCountryId,
+		(o) => o.sourceCountryId === countryId,
 	);
 
 	const committedTroops = ordersForCountry
@@ -69,7 +70,7 @@ function ActionPanel() {
 		if (!moveTarget || moveAmount <= 0 || moveAmount > availableTroops) return;
 		queueOrder({
 			type: "move",
-			sourceCountryId: selectedCountryId,
+			sourceCountryId: countryId,
 			targetCountryId: moveTarget,
 			amount: moveAmount,
 		});
@@ -81,7 +82,7 @@ function ActionPanel() {
 		if (!influenceTarget || influenceAmount <= 0) return;
 		queueOrder({
 			type: "influence",
-			sourceCountryId: selectedCountryId,
+			sourceCountryId: countryId,
 			targetCountryId: influenceTarget,
 			amount: influenceAmount,
 		});
