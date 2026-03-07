@@ -50,6 +50,8 @@ function initGlobe(canvas: HTMLCanvasElement): GlobeHandle {
 		selectedCountryId: null,
 		hoveredCountryId: null,
 		factionControlMap: new Map(),
+		movementArrows: [],
+		contestedCoords: [],
 	};
 
 	function redraw(highlight?: GlobeHighlight): void {

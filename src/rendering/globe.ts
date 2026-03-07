@@ -2,6 +2,7 @@ import { geoGraticule10 } from "d3-geo";
 import type { GeoPath } from "d3-geo";
 import { countriesFeatureCollection, featureIdToAlpha3 } from "../data/countries.ts";
 import type { GlobeContext, GlobeHighlight } from "./types.ts";
+import { drawArrows, drawContestedIndicators } from "./arrows.ts";
 
 const graticule = geoGraticule10();
 
@@ -68,6 +69,8 @@ const DEFAULT_HIGHLIGHT: GlobeHighlight = {
 	selectedCountryId: null,
 	hoveredCountryId: null,
 	factionControlMap: new Map(),
+	movementArrows: [],
+	contestedCoords: [],
 };
 
 function renderGlobe(
@@ -80,6 +83,8 @@ function renderGlobe(
 	drawOcean(ctx, globe);
 	drawCountries(ctx, pathGenerator, config, highlight);
 	drawGraticule(ctx, pathGenerator, config);
+	drawArrows(ctx, globe, highlight.movementArrows);
+	drawContestedIndicators(ctx, globe, highlight.contestedCoords);
 }
 
 export { renderGlobe };

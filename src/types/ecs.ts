@@ -18,6 +18,7 @@ export interface ControlComponent {
 
 export interface TroopsComponent {
 	readonly count: number;
+	readonly contestedTroops: Readonly<Record<string, number>>; // factionId -> troop count
 }
 
 export interface InfluenceComponent {
@@ -38,6 +39,7 @@ export interface Order {
 	readonly sourceCountryId: string;
 	readonly targetCountryId: string;
 	readonly amount: number;
+	readonly factionId: string;
 }
 
 export interface GameResources {
@@ -57,6 +59,7 @@ export interface GameEvents {
 	readonly phaseChanged: { readonly phase: TurnPhase };
 	readonly orderSubmitted: { readonly order: Order };
 	readonly turnResolved: { readonly turnNumber: number };
+	readonly combatResolved: { readonly countryId: string; readonly winnerId: string | null };
 }
 
 // ECS Component Map (for ecspresso generic)

@@ -29,10 +29,19 @@ export type GlobeContext = {
 
 export type CountryCallback = (countryId: string | null) => void;
 
+export type MovementArrow = {
+	readonly from: readonly [number, number]; // [lon, lat]
+	readonly to: readonly [number, number];   // [lon, lat]
+	readonly amount: number;
+	readonly color: string;
+};
+
 export type GlobeHighlight = {
 	readonly selectedCountryId: string | null;
 	readonly hoveredCountryId: string | null;
 	readonly factionControlMap: ReadonlyMap<string, string>; // countryId -> factionId
+	readonly movementArrows: ReadonlyArray<MovementArrow>;
+	readonly contestedCoords: ReadonlyArray<readonly [number, number]>;
 };
 
 export const DEFAULT_CONFIG: GlobeConfig = {

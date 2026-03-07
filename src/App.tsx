@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { initGlobe } from "./rendering/index.ts";
-import type { GlobeHighlight } from "./rendering/types.ts";
+import type { GlobeHighlight, MovementArrow } from "./rendering/types.ts";
 import { createWorld } from "./ecs/world.ts";
 import type { GameWorld } from "./ecs/world.ts";
 import { spawnCountries } from "./ecs/spawnCountries.ts";
@@ -28,6 +28,39 @@ function buildFactionColorMap(world: GameWorld): Record<string, string> {
 	return Object.fromEntries(factions.map((f) => [f.id, f.color]));
 }
 
+function buildMovementArrows(
+	world: GameWorld,
+	factionColors: Record<string, string>,
+): ReadonlyArray<MovementArrow> {
+	const pendingOrders = world.getResource("pendingOrders");
+	const entities = world.getEntitiesWithQuery(["country"]);
+
+	const capitalCoords = new Map<string, readonly [number, number]>(
+		entities.map((e) => [e.components.country.countryId, e.components.country.capitalCoordinates]),
+	);
+
+	return [...pendingOrders.values()]
+		.filter((order) => order.type === "move")
+		.flatMap((order) => {
+			const from = capitalCoords.get(order.sourceCountryId);
+			const to = capitalCoords.get(order.targetCountryId);
+			if (!from || !to) return [];
+			return [{
+				from,
+				to,
+				amount: order.amount,
+				color: factionColors[order.factionId] ?? "#ffffff",
+			}];
+		});
+}
+
+function buildContestedCoords(world: GameWorld): ReadonlyArray<readonly [number, number]> {
+	const entities = world.getEntitiesWithQuery(["country", "troops"]);
+	return entities
+		.filter((e) => Object.keys(e.components.troops.contestedTroops).length > 0)
+		.map((e) => e.components.country.capitalCoordinates);
+}
+
 function App() {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const [world] = useState(() => {
@@ -51,6 +84,8 @@ function App() {
 
 		let hoveredCountryId: string | null = null;
 		let cachedControlMap = buildFactionControlMap(world);
+		let cachedArrows = buildMovementArrows(world, factionColors);
+		let cachedContestedCoords = buildContestedCoords(world);
 
 		function redrawWithHighlight() {
 			const selectedCountryId = world.getResource("selectedCountryId");
@@ -58,8 +93,15 @@ function App() {
 				selectedCountryId,
 				hoveredCountryId,
 				factionControlMap: cachedControlMap,
+				movementArrows: cachedArrows,
+				contestedCoords: cachedContestedCoords,
 			};
 			handle.redraw(highlight);
+		}
+
+		function rebuildOverlayCache() {
+			cachedArrows = buildMovementArrows(world, factionColors);
+			cachedContestedCoords = buildContestedCoords(world);
 		}
 
 		handle.onCountryClick((countryId) => {
@@ -75,6 +117,12 @@ function App() {
 
 		const unsubTurnResolved = world.on("turnResolved", () => {
 			cachedControlMap = buildFactionControlMap(world);
+			rebuildOverlayCache();
+			redrawWithHighlight();
+		});
+
+		const unsubOrderSubmitted = world.on("orderSubmitted", () => {
+			rebuildOverlayCache();
 			redrawWithHighlight();
 		});
 
@@ -83,6 +131,7 @@ function App() {
 		return () => {
 			handle.cleanup();
 			unsubTurnResolved();
+			unsubOrderSubmitted();
 		};
 	}, [world]);
 

@@ -37,6 +37,7 @@ function spawnCountries(world: GameWorld): void {
 			},
 			troops: {
 				count: isHomeCountry ? STARTING_TROOPS : 0,
+				contestedTroops: {},
 			},
 			influence: {
 				factionInfluence,

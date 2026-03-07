@@ -24,6 +24,7 @@ function ActionPanel() {
 
 	if (!selectedCountryId || currentPhase !== "planning" || !playerFaction) return null;
 
+	const playerFactionId = playerFaction.id;
 	const countryId = selectedCountryId;
 	const entityId = countryEntityMap.get(countryId);
 	if (entityId === undefined) return null;
@@ -73,6 +74,7 @@ function ActionPanel() {
 			sourceCountryId: countryId,
 			targetCountryId: moveTarget,
 			amount: moveAmount,
+			factionId: playerFactionId,
 		});
 		setMoveTarget(null);
 		setMoveAmount(1);
@@ -85,6 +87,7 @@ function ActionPanel() {
 			sourceCountryId: countryId,
 			targetCountryId: influenceTarget,
 			amount: influenceAmount,
+			factionId: playerFactionId,
 		});
 		setInfluenceTarget(null);
 		setInfluenceAmount(1);
