@@ -6,7 +6,7 @@ function createWorld() {
 	return ECSpresso.create()
 		.withComponentTypes<GameComponents>()
 		.withEventTypes<GameEvents>()
-		.withResource("turnNumber" as const, 1)
+		.withResource("turnNumber", 1)
 		.withResource("currentPhase" as const, "planning" as TurnPhase)
 		.withResource("factions" as const, getDefaultFactions())
 		.withResource("selectedCountryId" as const, null as string | null)

@@ -53,7 +53,7 @@ function calculateFactionIncome(
 	world: Pick<GameWorld, "getEntitiesWithQuery">,
 ): IncomeResult {
 	const controlled = world.getEntitiesWithQuery(
-		["country", "control", "troops", "stability"] as const,
+		["country", "control", "troops", "stability"],
 	);
 
 	const factionCountries = controlled.filter(

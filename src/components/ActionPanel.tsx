@@ -28,7 +28,7 @@ function ActionPanel() {
 	if (entityId === undefined) return null;
 
 	const entities = world.getEntitiesWithQuery(
-		["country", "control", "troops", "adjacency"] as const,
+		["country", "control", "troops", "adjacency"],
 	);
 	const entity = entities.find((e) => e.id === entityId);
 	if (!entity) return null;

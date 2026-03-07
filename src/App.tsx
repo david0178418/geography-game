@@ -13,7 +13,7 @@ import { ActionPanel } from "./components/ActionPanel.tsx";
 import "./App.css";
 
 function buildFactionControlMap(world: GameWorld): Map<string, string> {
-	const entities = world.getEntitiesWithQuery(["country", "control"] as const);
+	const entities = world.getEntitiesWithQuery(["country", "control"]);
 	return entities.reduce((map, entity) => {
 		const { country, control } = entity.components;
 		if (control.factionId !== null) {

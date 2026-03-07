@@ -5,7 +5,7 @@ function FactionSummaryBar() {
 	const world = useGameWorld();
 	const factions = useEcsResource("factions");
 
-	const controlled = world.getEntitiesWithQuery(["control"] as const);
+	const controlled = world.getEntitiesWithQuery(["control"]);
 	const territoryCounts = Object.fromEntries(
 		Array.from(
 			controlled.reduce((map, entity) => {
