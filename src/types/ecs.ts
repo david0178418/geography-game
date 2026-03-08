@@ -50,6 +50,8 @@ export interface GameResources {
 	readonly pendingOrders: ReadonlyMap<string, Order>;
 	readonly countryEntityMap: ReadonlyMap<string, number>; // countryId -> entityId
 	readonly influenceBudgets: ReadonlyMap<string, number>; // factionId -> budget points
+	readonly activeInputMethod: import("@/input/input-types.ts").InputMethod | null;
+	readonly interactionState: import("@/ecs/interaction-state.ts").InteractionState;
 }
 
 // ECS Event Types

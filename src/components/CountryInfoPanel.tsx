@@ -8,6 +8,7 @@ function CountryInfoPanel() {
 	const selectedCountryId = useEcsResource("selectedCountryId");
 	const factions = useEcsResource("factions");
 	const countryEntityMap = useEcsResource("countryEntityMap");
+	const interactionState = useEcsResource("interactionState");
 
 	if (!selectedCountryId) return null;
 
@@ -107,20 +108,22 @@ function CountryInfoPanel() {
 				</div>
 			)}
 
-			<div className="info-section">
-				<h3>Adjacent Countries</h3>
-				<div className="adjacent-list">
-					{adjacency.neighbors.map((neighborId) => (
-						<button
-							key={neighborId}
-							className="adjacent-btn"
-							onClick={() => handleAdjacentClick(neighborId)}
-						>
-							{neighborId}
-						</button>
-					))}
+			{interactionState.mode !== 'selectingTarget' && (
+				<div className="info-section">
+					<h3>Adjacent Countries</h3>
+					<div className="adjacent-list">
+						{adjacency.neighbors.map((neighborId) => (
+							<button
+								key={neighborId}
+								className="adjacent-btn"
+								onClick={() => handleAdjacentClick(neighborId)}
+							>
+								{neighborId}
+							</button>
+						))}
+					</div>
 				</div>
-			</div>
+			)}
 		</div>
 	);
 }

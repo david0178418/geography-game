@@ -14,6 +14,8 @@ function createWorld() {
 		.withResource("pendingOrders", new Map())
 		.withResource("countryEntityMap", new Map())
 		.withResource("influenceBudgets", new Map())
+		.withResource("activeInputMethod", null)
+		.withResource("interactionState", { mode: 'idle' } as const)
 		.build();
 }
 

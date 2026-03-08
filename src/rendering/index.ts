@@ -10,6 +10,7 @@ interface GlobeHandle {
 	readonly cleanup: () => void;
 	readonly onCountryClick: (cb: CountryCallback) => void;
 	readonly onCountryHover: (cb: CountryCallback) => void;
+	readonly centerOnCountry: (lon: number, lat: number) => void;
 }
 
 function scaleFromDimensions(width: number, height: number): number {
@@ -102,6 +103,13 @@ function initGlobe(canvas: HTMLCanvasElement): GlobeHandle {
 		},
 		onCountryHover: (cb: CountryCallback) => {
 			cleanupFns.push(setupHoverHandler(globe, cb));
+		},
+		centerOnCountry: (lon: number, lat: number) => {
+			globe.state = {
+				...globe.state,
+				rotation: [-lon, -lat] as const,
+			};
+			redraw();
 		},
 	};
 }

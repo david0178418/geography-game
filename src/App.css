@@ -306,3 +306,13 @@
 .cancel-order-btn:hover {
 	background: rgba(239, 68, 68, 0.8);
 }
+
+/* Prompt Bar */
+.prompt-bar {
+	position: fixed;
+	bottom: 4rem;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 10;
+	pointer-events: none;
+}

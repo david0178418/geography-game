@@ -204,4 +204,12 @@ function setupHoverHandler(
 	};
 }
 
-export { setupDragRotation, setupScrollZoom, setupClickHandler, setupHoverHandler };
+function applyZoomDelta(globe: GlobeContext, delta: number): void {
+	const newScale = Math.max(
+		globe.config.minScale,
+		Math.min(globe.config.maxScale, globe.state.scale + delta),
+	);
+	globe.state = { ...globe.state, scale: newScale };
+}
+
+export { setupDragRotation, setupScrollZoom, setupClickHandler, setupHoverHandler, applyRotationDelta, applyZoomDelta };

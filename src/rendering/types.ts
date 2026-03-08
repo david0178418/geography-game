@@ -42,6 +42,8 @@ export type GlobeHighlight = {
 	readonly factionControlMap: ReadonlyMap<string, string>; // countryId -> factionId
 	readonly movementArrows: ReadonlyArray<MovementArrow>;
 	readonly contestedCoords: ReadonlyArray<readonly [number, number]>;
+	readonly validTargets?: ReadonlySet<string>;
+	readonly validTargetColor?: string;
 };
 
 export const DEFAULT_CONFIG: GlobeConfig = {
