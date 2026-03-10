@@ -52,6 +52,17 @@ function CountryCard({ globeHandle }: CountryCardProps) {
 
 	const playerFaction = factions.find((f) => f.isPlayer);
 
+	const ordersForCountry = useMemo(() =>
+		selectedCountryId
+			? [...pendingOrders.values()].filter((o) => o.sourceCountryId === selectedCountryId)
+			: [],
+		[pendingOrders, selectedCountryId],
+	);
+
+	const handleCancelOrder = useCallback((orderId: string) => {
+		removeOrder(world, orderId);
+	}, [world]);
+
 	if (!selectedCountryId || !entity) return null;
 
 	const { country, control, troops, stability, influence, adjacency } = entity.components;
@@ -67,11 +78,6 @@ function CountryCard({ globeHandle }: CountryCardProps) {
 		.filter(([, value]) => value > 0)
 		.sort(([, a], [, b]) => b - a);
 
-	const ordersForCountry = useMemo(() =>
-		[...pendingOrders.values()].filter((o) => o.sourceCountryId === selectedCountryId),
-		[pendingOrders, selectedCountryId],
-	);
-
 	const committedTroops = ordersForCountry
 		.filter((o) => o.type === "move" || o.type === "attack")
 		.reduce((sum, o) => sum + o.amount, 0);
@@ -80,10 +86,6 @@ function CountryCard({ globeHandle }: CountryCardProps) {
 		? getAvailableInfluenceBudget(playerFactionId, pendingOrders, influenceBudgets)
 		: 0;
 	const showActions = currentPhase === "planning" && playerFaction && isPlayerCountry;
-
-	const handleCancelOrder = useCallback((orderId: string) => {
-		removeOrder(world, orderId);
-	}, [world]);
 
 	const cardStyle: React.CSSProperties = {
 		transform: `translate(${cardPos.x}px, ${cardPos.y}px)`,
