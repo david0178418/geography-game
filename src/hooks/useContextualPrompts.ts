@@ -13,8 +13,9 @@ const idlePrompts: ReadonlyArray<Prompt> = [
 ];
 
 const countrySelectedPrompts: ReadonlyArray<Prompt> = [
-	{ action: 'NAVIGATE_UP', label: 'Navigate' },
 	{ action: 'CONFIRM', label: 'Action' },
+	{ action: 'NAVIGATE_UP', label: 'Navigate' },
+	{ action: 'CANCEL_ORDER', label: 'Cancel Order' },
 	{ action: 'BACK', label: 'Deselect' },
 	{ action: 'END_TURN', label: 'End Turn' },
 ];
@@ -22,6 +23,7 @@ const countrySelectedPrompts: ReadonlyArray<Prompt> = [
 const settingAmountPrompts: ReadonlyArray<Prompt> = [
 	{ action: 'INCREMENT', label: 'More' },
 	{ action: 'DECREMENT', label: 'Less' },
+	{ action: 'NAVIGATE_LEFT', label: 'Switch Type' },
 	{ action: 'CONFIRM', label: 'Confirm' },
 	{ action: 'BACK', label: 'Back' },
 ];
@@ -32,16 +34,9 @@ const selectingTargetPrompts: ReadonlyArray<Prompt> = [
 	{ action: 'BACK', label: 'Back' },
 ];
 
-const choosingActionPrompts: ReadonlyArray<Prompt> = [
-	{ action: 'CONFIRM', label: 'Confirm' },
-	{ action: 'CYCLE_ACTION', label: 'Switch Type' },
-	{ action: 'BACK', label: 'Back' },
-];
-
 const promptsByMode: Record<InteractionState['mode'], ReadonlyArray<Prompt>> = {
 	idle: idlePrompts,
 	countrySelected: countrySelectedPrompts,
-	choosingAction: choosingActionPrompts,
 	settingAmount: settingAmountPrompts,
 	selectingTarget: selectingTargetPrompts,
 };

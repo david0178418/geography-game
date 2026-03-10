@@ -8,14 +8,14 @@ import { createWorld } from "./ecs/world.ts";
 import type { GameWorld } from "./ecs/world.ts";
 import { spawnCountries } from "./ecs/spawnCountries.ts";
 import { registerTurnSystems } from "./ecs/turnLoop.ts";
-import { selectCountry, focusCountry } from "./ecs/interaction-state.ts";
+import { focusCountry } from "./ecs/interaction-state.ts";
+import { submitNewOrder } from "./ecs/orders.ts";
 import { adjacency } from "./data/adjacency.ts";
 import { capitals } from "./data/capitals.ts";
 import { GameContext } from "./contexts/GameContext.ts";
 import { TurnControls } from "./components/TurnControls.tsx";
 import { FactionSummaryBar } from "./components/FactionSummaryBar.tsx";
-import { CountryInfoPanel } from "./components/CountryInfoPanel.tsx";
-import { ActionPanel } from "./components/ActionPanel.tsx";
+import { CountryCard } from "./components/CountryCard.tsx";
 import { PromptBar } from "./components/PromptBar.tsx";
 import { InputMethodTracker } from "./components/InputMethodTracker.tsx";
 import { GlobeInputHandler } from "./components/GlobeInputHandler.tsx";
@@ -158,21 +158,7 @@ function App() {
 				if (validTargets.has(countryId)) {
 					const playerFaction = world.getResource("factions").find((f) => f.isPlayer);
 					if (playerFaction) {
-						const order = {
-							type: interactionState.actionType === 'move' ? 'move' as const : 'influence' as const,
-							sourceCountryId: interactionState.countryId,
-							targetCountryId: countryId,
-							amount: interactionState.amount,
-							factionId: playerFaction.id,
-						};
-						const orderId = `${order.type}-${order.sourceCountryId}-${order.targetCountryId}`;
-						world.updateResource("pendingOrders", (orders) => {
-							const next = new Map(orders);
-							next.set(orderId, order);
-							return next;
-						});
-						world.eventBus.publish("orderSubmitted", { order });
-						world.setResource("interactionState", selectCountry(interactionState.countryId));
+						submitNewOrder(world, interactionState, countryId, playerFaction.id);
 					}
 				}
 				return;
@@ -227,8 +213,7 @@ function App() {
 			<InputMethodTracker />
 			<GlobeInputHandler globeHandle={globeHandle} globeController={globeController} />
 			<FactionSummaryBar />
-			<CountryInfoPanel />
-			<ActionPanel />
+			<CountryCard globeHandle={globeHandle} />
 			<PromptBar />
 			<TurnControls />
 		</GameContext.Provider>

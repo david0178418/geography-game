@@ -6,8 +6,8 @@ type SvgComponent = FunctionComponent<SVGProps<SVGSVGElement>>;
 // Xbox imports
 import xboxButtonA from './assets/xbox/button_a.svg?react';
 import xboxButtonB from './assets/xbox/button_b.svg?react';
+import xboxButtonX from './assets/xbox/button_x.svg?react';
 import xboxButtonY from './assets/xbox/button_y.svg?react';
-import xboxButtonStart from './assets/xbox/button_start.svg?react';
 import xboxDpadUp from './assets/xbox/dpad_up.svg?react';
 import xboxDpadDown from './assets/xbox/dpad_down.svg?react';
 import xboxDpadLeft from './assets/xbox/dpad_left.svg?react';
@@ -17,7 +17,7 @@ import xboxDpadRight from './assets/xbox/dpad_right.svg?react';
 import psButtonCross from './assets/playstation/button_cross.svg?react';
 import psButtonCircle from './assets/playstation/button_circle.svg?react';
 import psButtonTriangle from './assets/playstation/button_triangle.svg?react';
-import psButtonOptions from './assets/playstation/button_options.svg?react';
+import psButtonSquare from './assets/playstation/button_square.svg?react';
 import psDpadUp from './assets/playstation/dpad_up.svg?react';
 import psDpadDown from './assets/playstation/dpad_down.svg?react';
 import psDpadLeft from './assets/playstation/dpad_left.svg?react';
@@ -27,7 +27,7 @@ import psDpadRight from './assets/playstation/dpad_right.svg?react';
 import switchButtonA from './assets/switch/button_a.svg?react';
 import switchButtonB from './assets/switch/button_b.svg?react';
 import switchButtonX from './assets/switch/button_x.svg?react';
-import switchButtonPlus from './assets/switch/button_plus.svg?react';
+import switchButtonY from './assets/switch/button_y.svg?react';
 import switchDpadUp from './assets/switch/dpad_up.svg?react';
 import switchDpadDown from './assets/switch/dpad_down.svg?react';
 import switchDpadLeft from './assets/switch/dpad_left.svg?react';
@@ -37,7 +37,7 @@ import switchDpadRight from './assets/switch/dpad_right.svg?react';
 import steamdeckButtonA from './assets/steamdeck/button_a.svg?react';
 import steamdeckButtonB from './assets/steamdeck/button_b.svg?react';
 import steamdeckButtonY from './assets/steamdeck/button_y.svg?react';
-import steamdeckButtonOption from './assets/steamdeck/button_options.svg?react';
+import steamdeckButtonX from './assets/steamdeck/button_x.svg?react';
 import steamdeckDpadUp from './assets/steamdeck/dpad_up.svg?react';
 import steamdeckDpadDown from './assets/steamdeck/dpad_down.svg?react';
 import steamdeckDpadLeft from './assets/steamdeck/dpad_left.svg?react';
@@ -60,8 +60,8 @@ export const ButtonGlyphMap: Record<ControllerType, Partial<Record<InputAction, 
 	[ControllerType.XBOX]: {
 		[InputAction.CONFIRM]: xboxButtonA,
 		[InputAction.BACK]: xboxButtonB,
+		[InputAction.CANCEL_ORDER]: xboxButtonX,
 		[InputAction.END_TURN]: xboxButtonY,
-		[InputAction.CYCLE_ACTION]: xboxButtonStart,
 		[InputAction.NAVIGATE_UP]: xboxDpadUp,
 		[InputAction.NAVIGATE_DOWN]: xboxDpadDown,
 		[InputAction.NAVIGATE_LEFT]: xboxDpadLeft,
@@ -71,7 +71,7 @@ export const ButtonGlyphMap: Record<ControllerType, Partial<Record<InputAction, 
 		[InputAction.CONFIRM]: psButtonCross,
 		[InputAction.BACK]: psButtonCircle,
 		[InputAction.END_TURN]: psButtonTriangle,
-		[InputAction.CYCLE_ACTION]: psButtonOptions,
+		[InputAction.CANCEL_ORDER]: psButtonSquare,
 		[InputAction.NAVIGATE_UP]: psDpadUp,
 		[InputAction.NAVIGATE_DOWN]: psDpadDown,
 		[InputAction.NAVIGATE_LEFT]: psDpadLeft,
@@ -81,7 +81,7 @@ export const ButtonGlyphMap: Record<ControllerType, Partial<Record<InputAction, 
 		[InputAction.CONFIRM]: switchButtonB,
 		[InputAction.BACK]: switchButtonA,
 		[InputAction.END_TURN]: switchButtonX,
-		[InputAction.CYCLE_ACTION]: switchButtonPlus,
+		[InputAction.CANCEL_ORDER]: switchButtonY,
 		[InputAction.NAVIGATE_UP]: switchDpadUp,
 		[InputAction.NAVIGATE_DOWN]: switchDpadDown,
 		[InputAction.NAVIGATE_LEFT]: switchDpadLeft,
@@ -91,7 +91,7 @@ export const ButtonGlyphMap: Record<ControllerType, Partial<Record<InputAction, 
 		[InputAction.CONFIRM]: steamdeckButtonA,
 		[InputAction.BACK]: steamdeckButtonB,
 		[InputAction.END_TURN]: steamdeckButtonY,
-		[InputAction.CYCLE_ACTION]: steamdeckButtonOption,
+		[InputAction.CANCEL_ORDER]: steamdeckButtonX,
 		[InputAction.NAVIGATE_UP]: steamdeckDpadUp,
 		[InputAction.NAVIGATE_DOWN]: steamdeckDpadDown,
 		[InputAction.NAVIGATE_LEFT]: steamdeckDpadLeft,
@@ -110,7 +110,7 @@ export const ButtonGlyphMap: Record<ControllerType, Partial<Record<InputAction, 
 		[InputAction.CONFIRM]: xboxButtonA,
 		[InputAction.BACK]: xboxButtonB,
 		[InputAction.END_TURN]: xboxButtonY,
-		[InputAction.CYCLE_ACTION]: xboxButtonStart,
+		[InputAction.CANCEL_ORDER]: xboxButtonX,
 		[InputAction.NAVIGATE_UP]: xboxDpadUp,
 		[InputAction.NAVIGATE_DOWN]: xboxDpadDown,
 		[InputAction.NAVIGATE_LEFT]: xboxDpadLeft,

@@ -6,6 +6,7 @@ import { getGamepadManager } from "@/input/gamepad-manager.ts";
 import { getKeyboardManager } from "@/input/keyboard-manager.ts";
 import { focusCountry } from "@/ecs/interaction-state.ts";
 import { screenToCountryId } from "@/rendering/hitDetection.ts";
+import { applyZoomDelta } from "@/rendering/interactions.ts";
 import type { GlobeHandle } from "@/rendering/index.ts";
 import type { GlobeControllerHandle } from "@/rendering/globe-controller.ts";
 import type { Direction } from "@/rendering/navigation.ts";
@@ -15,6 +16,7 @@ interface GlobeInputHandlerProps {
 	readonly globeController: GlobeControllerHandle | null;
 }
 
+/** Apply rotation in degrees (not mouse pixels — bypasses ROTATION_SENSITIVITY). */
 function applyRotation(globeHandle: GlobeHandle, dx: number, dy: number): void {
 	globeHandle.globe.state = {
 		...globeHandle.globe.state,
@@ -27,11 +29,7 @@ function applyRotation(globeHandle: GlobeHandle, dx: number, dy: number): void {
 }
 
 function applyZoomStep(globeHandle: GlobeHandle, delta: number): void {
-	const { config, state } = globeHandle.globe;
-	globeHandle.globe.state = {
-		...state,
-		scale: Math.max(config.minScale, Math.min(config.maxScale, state.scale + delta)),
-	};
+	applyZoomDelta(globeHandle.globe, delta);
 	globeHandle.redraw();
 }
 
@@ -119,12 +117,15 @@ function GlobeInputHandler({ globeHandle, globeController }: GlobeInputHandlerPr
 	}, []);
 
 	// Left stick / d-pad / arrow key navigation (edge-triggered via useInputAction)
+	// Disabled during selectingTarget mode — CountryCard handles list navigation instead
 	const handleNavigate = useCallback((direction: Direction) => {
 		if (!globeController || !globeHandle) return;
 
+		const currentInteraction = world.getResource("interactionState");
+		if (currentInteraction.mode === 'selectingTarget' || currentInteraction.mode === 'settingAmount') return;
+
 		const currentId = world.getResource("selectedCountryId");
 		if (!currentId) {
-			// No country selected — pick the country at the center of the globe
 			const centered = getCenterCountry(globeController, globeHandle);
 			if (centered) {
 				focusCountry(world, centered);
