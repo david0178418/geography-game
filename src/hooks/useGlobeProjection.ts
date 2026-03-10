@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { applyState } from "@/rendering/projection.ts";
 import type { GlobeHandle } from "@/rendering/index.ts";
+import type { GlobeState } from "@/rendering/types.ts";
 
 interface ProjectionOptions {
 	readonly cardWidth: number;
@@ -24,11 +25,13 @@ function useGlobeProjection(
 ): CardPosition {
 	const [pos, setPos] = useState<CardPosition>(HIDDEN);
 	const prevRef = useRef<CardPosition>(HIDDEN);
+	const prevStateRef = useRef<GlobeState | null>(null);
 
 	useEffect(() => {
 		if (!globeHandle || !capitalCoords) {
 			if (prevRef.current.visible) {
 				prevRef.current = HIDDEN;
+				prevStateRef.current = null;
 				setPos(HIDDEN);
 			}
 			return;
@@ -38,7 +41,10 @@ function useGlobeProjection(
 
 		function tick() {
 			const { projection, state } = globeHandle!.globe;
-			applyState(projection, state);
+			if (prevStateRef.current !== state) {
+				prevStateRef.current = state;
+				applyState(projection, state);
+			}
 			const projected = projection([capitalCoords![0], capitalCoords![1]]);
 
 			if (!projected) {

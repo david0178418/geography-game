@@ -155,12 +155,6 @@
 	gap: 0.3rem;
 }
 
-.card-actions h4 {
-	margin: 0 0 0.3rem 0;
-	font-size: 0.85rem;
-	opacity: 0.8;
-}
-
 .action-buttons {
 	display: flex;
 	flex-direction: column;

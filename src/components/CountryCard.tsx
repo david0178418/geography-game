@@ -59,7 +59,7 @@ function CountryCard({ globeHandle }: CountryCardProps) {
 		[pendingOrders, selectedCountryId],
 	);
 
-	const handleCancelOrder = useCallback((orderId: string) => {
+	const removeOrderById = useCallback((orderId: string) => {
 		removeOrder(world, orderId);
 	}, [world]);
 
@@ -119,7 +119,7 @@ function CountryCard({ globeHandle }: CountryCardProps) {
 				<OrdersList
 					orders={ordersForCountry}
 					focusedIndex={-1}
-					onCancel={handleCancelOrder}
+					onCancel={removeOrderById}
 					onFocus={() => {}}
 				/>
 			)}
@@ -405,7 +405,7 @@ function ActionSection({
 	useInputAction('NAVIGATE_LEFT', handleSwitchActionType);
 	useInputAction('NAVIGATE_RIGHT', handleSwitchActionType);
 
-	const handleClickCancel = useCallback((orderId: string) => {
+	const removeOrderById = useCallback((orderId: string) => {
 		removeOrder(world, orderId);
 	}, [world]);
 
@@ -510,7 +510,7 @@ function ActionSection({
 				<OrdersList
 					orders={ordersForCountry}
 					focusedIndex={focusedOrderIndex}
-					onCancel={handleClickCancel}
+					onCancel={removeOrderById}
 					onFocus={setFocusedOrderIndex}
 				/>
 			)}
