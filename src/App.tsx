@@ -8,7 +8,7 @@ import { createWorld } from "./ecs/world.ts";
 import type { GameWorld } from "./ecs/world.ts";
 import { spawnCountries } from "./ecs/spawnCountries.ts";
 import { registerTurnSystems } from "./ecs/turnLoop.ts";
-import { selectCountry } from "./ecs/interaction-state.ts";
+import { selectCountry, focusCountry } from "./ecs/interaction-state.ts";
 import { adjacency } from "./data/adjacency.ts";
 import { capitals } from "./data/capitals.ts";
 import { GameContext } from "./contexts/GameContext.ts";
@@ -178,11 +178,12 @@ function App() {
 				return;
 			}
 
-			world.setResource("selectedCountryId", countryId);
-			world.setResource("interactionState", countryId
-				? selectCountry(countryId)
-				: { mode: 'idle' as const }
-			);
+			if (countryId) {
+				focusCountry(world, countryId);
+			} else {
+				world.setResource("selectedCountryId", null);
+				world.setResource("interactionState", { mode: 'idle' as const });
+			}
 			world.eventBus.publish("countryClicked", { countryId });
 			redrawWithHighlight();
 		});

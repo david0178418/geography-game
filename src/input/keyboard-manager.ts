@@ -9,6 +9,7 @@ export interface KeyboardManagerHandle {
 	readonly removeListener: (listener: InputListener) => void;
 	readonly setEnabled: (enabled: boolean) => void;
 	readonly isEnabled: () => boolean;
+	readonly isKeyPressed: (key: string) => boolean;
 }
 
 function createKeyboardManager(): KeyboardManagerHandle {
@@ -25,9 +26,10 @@ function createKeyboardManager(): KeyboardManagerHandle {
 		}
 
 		const key = event.key;
-		if (pressedKeys.has(key)) return;
+		const normalizedKey = key.toLowerCase();
+		if (pressedKeys.has(normalizedKey)) return;
 
-		pressedKeys.add(key);
+		pressedKeys.add(normalizedKey);
 
 		const action = event.shiftKey
 			? (ShiftKeyboardMappings[key] ?? KeyboardMappings[key])
@@ -45,7 +47,7 @@ function createKeyboardManager(): KeyboardManagerHandle {
 	}
 
 	function handleKeyUp(event: KeyboardEvent): void {
-		pressedKeys.delete(event.key);
+		pressedKeys.delete(event.key.toLowerCase());
 	}
 
 	const handle: KeyboardManagerHandle = {
@@ -74,6 +76,9 @@ function createKeyboardManager(): KeyboardManagerHandle {
 		},
 		isEnabled() {
 			return enabled;
+		},
+		isKeyPressed(key: string) {
+			return pressedKeys.has(key.toLowerCase());
 		},
 	};
 

@@ -1,3 +1,5 @@
+import type { GameWorld } from "./world.ts";
+
 export type InteractionState =
 	| { readonly mode: 'idle' }
 	| { readonly mode: 'countrySelected'; readonly countryId: string }
@@ -7,6 +9,11 @@ export type InteractionState =
 
 function selectCountry(countryId: string): InteractionState {
 	return { mode: 'countrySelected', countryId };
+}
+
+function focusCountry(world: GameWorld, countryId: string): void {
+	world.setResource("selectedCountryId", countryId);
+	world.setResource("interactionState", selectCountry(countryId));
 }
 
 function chooseAction(state: InteractionState, actionType: 'move' | 'influence'): InteractionState {
@@ -52,4 +59,4 @@ function cycleActionType(state: InteractionState): InteractionState {
 	return { ...state, actionType: nextType };
 }
 
-export { selectCountry, chooseAction, setAmount, enterTargetSelection, adjustAmount, goBack, cycleActionType };
+export { selectCountry, focusCountry, chooseAction, setAmount, enterTargetSelection, adjustAmount, goBack, cycleActionType };

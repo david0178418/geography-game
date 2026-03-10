@@ -81,16 +81,6 @@ export const KeyboardMappings: Record<string, InputAction> = {
 	ArrowLeft: InputAction.NAVIGATE_LEFT,
 	ArrowRight: InputAction.NAVIGATE_RIGHT,
 
-	// Navigation - WASD
-	w: InputAction.NAVIGATE_UP,
-	W: InputAction.NAVIGATE_UP,
-	s: InputAction.NAVIGATE_DOWN,
-	S: InputAction.NAVIGATE_DOWN,
-	a: InputAction.NAVIGATE_LEFT,
-	A: InputAction.NAVIGATE_LEFT,
-	d: InputAction.NAVIGATE_RIGHT,
-	D: InputAction.NAVIGATE_RIGHT,
-
 	// Game actions
 	e: InputAction.END_TURN,
 	E: InputAction.END_TURN,
