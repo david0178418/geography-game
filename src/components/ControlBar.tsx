@@ -98,7 +98,7 @@ function getAvailableActionsForCountry(
 	// If multiple, source is '' — will trigger secondarySelection for source resolution.
 	return {
 		actions,
-		sourceCountryId: playerAdjacent.length === 1 ? playerAdjacent[0] : '',
+		sourceCountryId: (playerAdjacent.length === 1 && playerAdjacent[0]) ? playerAdjacent[0] : '',
 		targetCountryId: countryId,
 	};
 }

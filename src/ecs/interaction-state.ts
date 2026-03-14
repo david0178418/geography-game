@@ -53,10 +53,12 @@ function selectForAction(countryId: string, context: SelectContext): Interaction
 	const { availableActions, sourceCountryId, targetCountryId } = context;
 	if (availableActions.length === 0) return { mode: 'focusing', countryId };
 	if (availableActions.length === 1) {
+		const actionType = availableActions[0];
+		if (!actionType) return { mode: 'focusing', countryId };
 		return {
 			mode: 'settingAmount',
 			countryId,
-			actionType: availableActions[0],
+			actionType,
 			amount: 1,
 			sourceCountryId,
 			targetCountryId,
@@ -152,11 +154,12 @@ function confirmAmount(
 	if (validOptions.length === 0) return null;
 	if (validOptions.length === 1) {
 		const resolved = validOptions[0];
+		if (!resolved) return null;
 		return {
 			outcome: 'complete',
 			state: { mode: 'focusing', countryId: state.countryId },
 			sourceCountryId: role === 'source' ? resolved : sourceCountryId,
-			targetCountryId: role === 'target' ? resolved : targetCountryId!,
+			targetCountryId: role === 'target' ? resolved : (targetCountryId ?? sourceCountryId),
 		};
 	}
 
