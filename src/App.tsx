@@ -9,14 +9,12 @@ import type { GameWorld } from "./ecs/world.ts";
 import { spawnCountries } from "./ecs/spawnCountries.ts";
 import { registerTurnSystems } from "./ecs/turnLoop.ts";
 import { focusCountry } from "./ecs/interaction-state.ts";
-import { submitNewOrder } from "./ecs/orders.ts";
 import { adjacency } from "./data/adjacency.ts";
 import { capitals } from "./data/capitals.ts";
 import { GameContext } from "./contexts/GameContext.ts";
-import { TurnControls } from "./components/TurnControls.tsx";
 import { FactionSummaryBar } from "./components/FactionSummaryBar.tsx";
-import { CountryCard } from "./components/CountryCard.tsx";
-import { PromptBar } from "./components/PromptBar.tsx";
+import { CountryInfoPanel } from "./components/CountryInfoPanel.tsx";
+import { ControlBar } from "./components/ControlBar.tsx";
 import { InputMethodTracker } from "./components/InputMethodTracker.tsx";
 import { GlobeInputHandler } from "./components/GlobeInputHandler.tsx";
 import "./App.css";
@@ -124,7 +122,7 @@ function App() {
 			const selectedCountryId = world.getResource("selectedCountryId");
 			const interactionState = world.getResource("interactionState");
 
-			const isSelectingTarget = interactionState.mode === 'selectingTarget';
+			const isSelectingTarget = interactionState.mode === 'secondarySelection' && interactionState.role === 'target';
 
 			const baseHighlight = {
 				selectedCountryId,
@@ -151,19 +149,6 @@ function App() {
 		}
 
 		handle.onCountryClick((countryId) => {
-			const interactionState = world.getResource("interactionState");
-
-			if (interactionState.mode === 'selectingTarget' && countryId) {
-				const validTargets = getValidTargets(world, interactionState.countryId);
-				if (validTargets.has(countryId)) {
-					const playerFaction = world.getResource("factions").find((f) => f.isPlayer);
-					if (playerFaction) {
-						submitNewOrder(world, interactionState, countryId, playerFaction.id);
-					}
-				}
-				return;
-			}
-
 			if (countryId) {
 				focusCountry(world, countryId);
 			} else {
@@ -213,9 +198,8 @@ function App() {
 			<InputMethodTracker />
 			<GlobeInputHandler globeHandle={globeHandle} globeController={globeController} />
 			<FactionSummaryBar />
-			<CountryCard globeHandle={globeHandle} />
-			<PromptBar />
-			<TurnControls />
+			<CountryInfoPanel />
+			<ControlBar />
 		</GameContext.Provider>
 	);
 }
