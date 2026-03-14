@@ -20,10 +20,39 @@ Five interaction modes replace the current four:
 type InteractionState =
   | { readonly mode: 'idle' }
   | { readonly mode: 'focusing'; readonly countryId: string }
-  | { readonly mode: 'actionMenu'; readonly countryId: string; readonly availableActions: ReadonlyArray<'move' | 'influence'> }
-  | { readonly mode: 'settingAmount'; readonly countryId: string; readonly actionType: 'move' | 'influence'; readonly amount: number }
-  | { readonly mode: 'secondarySelection'; readonly countryId: string; readonly actionType: 'move' | 'influence'; readonly amount: number; readonly role: 'target' | 'source'; readonly validOptions: ReadonlyArray<string>; readonly focusedIndex: number };
+  | {
+      readonly mode: 'actionMenu';
+      readonly countryId: string;
+      readonly availableActions: ReadonlyArray<'move' | 'influence'>;
+      readonly focusedIndex: number;
+    }
+  | {
+      readonly mode: 'settingAmount';
+      readonly countryId: string;
+      readonly actionType: 'move' | 'influence';
+      readonly amount: number;
+      readonly sourceCountryId: string;
+      readonly targetCountryId: string | null;
+      readonly skippedActionMenu: boolean;
+    }
+  | {
+      readonly mode: 'secondarySelection';
+      readonly countryId: string;
+      readonly actionType: 'move' | 'influence';
+      readonly amount: number;
+      readonly sourceCountryId: string | null;
+      readonly targetCountryId: string | null;
+      readonly role: 'target' | 'source';
+      readonly validOptions: ReadonlyArray<string>;
+      readonly focusedIndex: number;
+    };
 ```
+
+**Key fields:**
+- `actionMenu.focusedIndex` — tracks which action is highlighted for NAVIGATE_UP/DOWN.
+- `settingAmount.sourceCountryId` / `targetCountryId` — resolved eagerly when possible. When the player selects their own country, `sourceCountryId` is set and `targetCountryId` is null (to be resolved). When the player selects an adjacent non-owned country, `targetCountryId` is set; `sourceCountryId` is set if only one player territory is adjacent, otherwise resolved via `secondarySelection`.
+- `settingAmount.skippedActionMenu` — tracks whether `actionMenu` was auto-skipped, so `goBack` knows to return to `focusing` instead of `actionMenu`.
+- `secondarySelection.sourceCountryId` / `targetCountryId` — one is null (the one being resolved by the selection), the other is already known.
 
 ### Back Transitions
 
@@ -42,9 +71,15 @@ The "assume when no choice exists" principle: skip any decision step that has ex
 
 ### Actionability
 
-A country is actionable during `focusing` mode when:
-- It is controlled by the player (can move troops from it, can influence adjacent countries from it)
-- It is adjacent to a player-controlled country (can be invaded or influenced)
+A country is actionable during `focusing` mode when it has at least one available action. Available actions are determined by:
+- **Player-controlled country**: "move" if `availableTroops > 0`, "influence" if `availableBudget > 0` and at least one adjacent non-player country exists.
+- **Adjacent to player-controlled country**: "move" (invasion) if any adjacent player country has `availableTroops > 0`, "influence" if `availableBudget > 0`.
+
+If no actions pass these resource checks, the country is not actionable and the Select button does not appear.
+
+### Order type: move vs attack
+
+The existing `Order.type` includes `"attack"`. This is a resolution-time distinction, not a player decision. The player always issues `"move"` orders. When the turn resolves, moves into enemy territory are treated as attacks. The `actionType` in the interaction state is always `'move' | 'influence'`.
 
 ### Transition Flow on Select
 
@@ -90,7 +125,7 @@ Single unified bottom bar. Content is mode-aware:
 | `idle` | Turn counter, End Turn button, prompts |
 | `focusing` | Turn counter, End Turn button, Select button (if actionable), prompts |
 | `actionMenu` | Action option buttons (Move Troops, Influence), Back, prompts |
-| `settingAmount` | Amount stepper + slider, action type label, Confirm/Back, prompts |
+| `settingAmount` | Action type label, amount stepper + slider, Confirm/Back, prompts |
 | `secondarySelection` | Label ("Select target"/"Select source"), valid options list with navigation, Confirm/Back, prompts |
 
 Composed of sub-components for each mode's content. Owns all action-related input handling (CONFIRM, BACK, INCREMENT, DECREMENT, NAVIGATE_* for menus/lists).
@@ -113,7 +148,7 @@ When mode exits `idle` or `focusing`, globe rotation, zoom, and country navigati
 | `idle` | Navigation, rotation, zoom, CONFIRM (focus center) | END_TURN |
 | `focusing` | Navigation, rotation, zoom | CONFIRM (select), BACK (undo/deselect), END_TURN |
 | `actionMenu` | Nothing | NAVIGATE_UP/DOWN, CONFIRM, BACK |
-| `settingAmount` | Nothing | INCREMENT/DECREMENT, NAVIGATE_LEFT/RIGHT (switch type), CONFIRM, BACK |
+| `settingAmount` | Nothing | INCREMENT/DECREMENT, CONFIRM, BACK |
 | `secondarySelection` | Nothing | NAVIGATE_UP/DOWN, CONFIRM, BACK |
 
 ### Continuous Polling Guards
@@ -125,9 +160,11 @@ The `GlobeInputHandler` rAF loop checks current mode and skips analog rotation, 
 Orders stored in `Map<orderId, Order>` (JavaScript Map preserves insertion order).
 
 Back in `focusing` mode:
-1. Get last order: `[...pendingOrders.values()].at(-1)`
+1. Get last order globally: `[...pendingOrders.values()].at(-1)`
 2. If exists: remove it, stay in `focusing`
 3. If no orders: deselect country, return to `idle`
+
+The undo is global (not per-country). The most recently issued order is removed regardless of which country the player is currently viewing. This matches a "undo last action" mental model.
 
 The `CANCEL_ORDER` input action is removed — back in focusing mode replaces it.
 
@@ -146,6 +183,8 @@ A `popLastOrder` helper is added to `orders.ts`.
 | `src/hooks/useContextualPrompts.ts` | Update prompts for 5 new modes |
 | `src/hooks/useGlobeProjection.ts` | Delete — no longer needed |
 | `src/input/input-types.ts` | Remove `CANCEL_ORDER` action |
+| `src/input/controller-mappings.ts` | Remove `CANCEL_ORDER` mappings |
+| `src/components/button-prompts/button-glyph-map.ts` | Remove `CANCEL_ORDER` glyph entries |
 | `src/ecs/orders.ts` | Add `popLastOrder` helper |
 | `src/App.tsx` | Replace `CountryCard` + `TurnControls` + `PromptBar` with `CountryInfoPanel` + `ControlBar` |
 | `src/App.css` | Replace `.country-card` with `.country-info-panel` (top-left fixed). Add `.control-bar`. Remove old action/target styles |
