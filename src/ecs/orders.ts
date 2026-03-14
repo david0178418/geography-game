@@ -1,7 +1,5 @@
 import type { Order } from "@/types/ecs.ts";
 import type { GameWorld } from "./world.ts";
-import type { InteractionState } from "./interaction-state.ts";
-import { selectCountry } from "./interaction-state.ts";
 
 function orderToId(order: Order): string {
 	return `${order.type}-${order.sourceCountryId}-${order.targetCountryId}`;
@@ -15,17 +13,28 @@ function removeOrder(world: GameWorld, orderId: string): void {
 	});
 }
 
-function submitNewOrder(
+function popLastOrder(world: GameWorld): Order | null {
+	const orders = world.getResource("pendingOrders");
+	const values = [...orders.values()];
+	const last = values.at(-1);
+	if (!last) return null;
+	removeOrder(world, orderToId(last));
+	return last;
+}
+
+function submitOrder(
 	world: GameWorld,
-	interactionState: Extract<InteractionState, { readonly mode: 'selectingTarget' }>,
+	actionType: 'move' | 'influence',
+	sourceCountryId: string,
 	targetCountryId: string,
+	amount: number,
 	factionId: string,
 ): void {
 	const order: Order = {
-		type: interactionState.actionType === 'move' ? 'move' : 'influence',
-		sourceCountryId: interactionState.countryId,
+		type: actionType === 'move' ? 'move' : 'influence',
+		sourceCountryId,
 		targetCountryId,
-		amount: interactionState.amount,
+		amount,
 		factionId,
 	};
 	const orderId = orderToId(order);
@@ -35,7 +44,6 @@ function submitNewOrder(
 		return next;
 	});
 	world.eventBus.publish("orderSubmitted", { order });
-	world.setResource("interactionState", selectCountry(interactionState.countryId));
 }
 
-export { orderToId, removeOrder, submitNewOrder };
+export { orderToId, removeOrder, popLastOrder, submitOrder };
