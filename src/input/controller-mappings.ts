@@ -7,7 +7,7 @@ export const ControllerMappings: Record<ControllerType, Partial<Record<GamepadBu
 	[ControllerType.XBOX]: {
 		[GamepadButton.A]: InputAction.CONFIRM,
 		[GamepadButton.B]: InputAction.BACK,
-		[GamepadButton.X]: InputAction.CANCEL_ORDER,
+
 		[GamepadButton.Y]: InputAction.END_TURN,
 		[GamepadButton.LB]: InputAction.DECREMENT,
 		[GamepadButton.RB]: InputAction.INCREMENT,
@@ -19,7 +19,7 @@ export const ControllerMappings: Record<ControllerType, Partial<Record<GamepadBu
 	[ControllerType.PLAYSTATION]: {
 		[GamepadButton.A]: InputAction.CONFIRM,
 		[GamepadButton.B]: InputAction.BACK,
-		[GamepadButton.X]: InputAction.CANCEL_ORDER,
+
 		[GamepadButton.Y]: InputAction.END_TURN,
 		[GamepadButton.LB]: InputAction.DECREMENT,
 		[GamepadButton.RB]: InputAction.INCREMENT,
@@ -31,7 +31,7 @@ export const ControllerMappings: Record<ControllerType, Partial<Record<GamepadBu
 	[ControllerType.NINTENDO_SWITCH]: {
 		[GamepadButton.B]: InputAction.CONFIRM,
 		[GamepadButton.A]: InputAction.BACK,
-		[GamepadButton.Y]: InputAction.CANCEL_ORDER,
+
 		[GamepadButton.X]: InputAction.END_TURN,
 		[GamepadButton.LB]: InputAction.DECREMENT,
 		[GamepadButton.RB]: InputAction.INCREMENT,
@@ -43,7 +43,7 @@ export const ControllerMappings: Record<ControllerType, Partial<Record<GamepadBu
 	[ControllerType.STEAMDECK]: {
 		[GamepadButton.A]: InputAction.CONFIRM,
 		[GamepadButton.B]: InputAction.BACK,
-		[GamepadButton.X]: InputAction.CANCEL_ORDER,
+
 		[GamepadButton.Y]: InputAction.END_TURN,
 		[GamepadButton.LB]: InputAction.DECREMENT,
 		[GamepadButton.RB]: InputAction.INCREMENT,
@@ -55,7 +55,7 @@ export const ControllerMappings: Record<ControllerType, Partial<Record<GamepadBu
 	[ControllerType.GENERIC]: {
 		[GamepadButton.A]: InputAction.CONFIRM,
 		[GamepadButton.B]: InputAction.BACK,
-		[GamepadButton.X]: InputAction.CANCEL_ORDER,
+
 		[GamepadButton.Y]: InputAction.END_TURN,
 		[GamepadButton.LB]: InputAction.DECREMENT,
 		[GamepadButton.RB]: InputAction.INCREMENT,
@@ -84,9 +84,6 @@ export const KeyboardMappings: Record<string, InputAction> = {
 	// Game actions
 	e: InputAction.END_TURN,
 	E: InputAction.END_TURN,
-	Delete: InputAction.CANCEL_ORDER,
-	x: InputAction.CANCEL_ORDER,
-
 	// Zoom
 	q: InputAction.ZOOM_IN,
 	Q: InputAction.ZOOM_IN,
@@ -116,7 +113,7 @@ export const ControllerButtonLabels: Record<ControllerType, Partial<Record<Input
 	[ControllerType.XBOX]: {
 		[InputAction.CONFIRM]: 'A',
 		[InputAction.BACK]: 'B',
-		[InputAction.CANCEL_ORDER]: 'X',
+
 		[InputAction.END_TURN]: 'Y',
 		[InputAction.INCREMENT]: 'RB',
 		[InputAction.DECREMENT]: 'LB',
@@ -131,7 +128,7 @@ export const ControllerButtonLabels: Record<ControllerType, Partial<Record<Input
 		[InputAction.CONFIRM]: '\u2715',
 		[InputAction.BACK]: '\u25CB',
 		[InputAction.END_TURN]: '\u25B3',
-		[InputAction.CANCEL_ORDER]: '\u25A1',
+
 		[InputAction.INCREMENT]: 'R1',
 		[InputAction.DECREMENT]: 'L1',
 		[InputAction.NAVIGATE_UP]: 'D-Pad \u2191',
@@ -145,7 +142,7 @@ export const ControllerButtonLabels: Record<ControllerType, Partial<Record<Input
 		[InputAction.CONFIRM]: 'B',
 		[InputAction.BACK]: 'A',
 		[InputAction.END_TURN]: 'X',
-		[InputAction.CANCEL_ORDER]: 'Y',
+
 		[InputAction.INCREMENT]: 'R',
 		[InputAction.DECREMENT]: 'L',
 		[InputAction.NAVIGATE_UP]: 'D-Pad \u2191',
@@ -159,7 +156,7 @@ export const ControllerButtonLabels: Record<ControllerType, Partial<Record<Input
 		[InputAction.CONFIRM]: 'A',
 		[InputAction.BACK]: 'B',
 		[InputAction.END_TURN]: 'Y',
-		[InputAction.CANCEL_ORDER]: 'X',
+
 		[InputAction.INCREMENT]: 'R1',
 		[InputAction.DECREMENT]: 'L1',
 		[InputAction.NAVIGATE_UP]: 'D-Pad \u2191',
@@ -173,7 +170,7 @@ export const ControllerButtonLabels: Record<ControllerType, Partial<Record<Input
 		[InputAction.CONFIRM]: 'Enter',
 		[InputAction.BACK]: 'Esc',
 		[InputAction.END_TURN]: 'E',
-		[InputAction.CANCEL_ORDER]: 'X',
+
 		[InputAction.INCREMENT]: '+',
 		[InputAction.DECREMENT]: '-',
 		[InputAction.NAVIGATE_UP]: '\u2191',
@@ -190,7 +187,7 @@ export const ControllerButtonLabels: Record<ControllerType, Partial<Record<Input
 	[ControllerType.GENERIC]: {
 		[InputAction.CONFIRM]: 'A',
 		[InputAction.BACK]: 'B',
-		[InputAction.CANCEL_ORDER]: 'X',
+
 		[InputAction.END_TURN]: 'Y',
 		[InputAction.INCREMENT]: 'RB',
 		[InputAction.DECREMENT]: 'LB',
