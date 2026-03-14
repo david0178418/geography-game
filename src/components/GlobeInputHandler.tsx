@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useGameWorld } from "@/contexts/GameContext.ts";
-import { useEcsResource } from "@/hooks/useEcsResource.ts";
 import { useInputAction } from "@/input/input-hooks.ts";
 import { getGamepadManager } from "@/input/gamepad-manager.ts";
 import { getKeyboardManager } from "@/input/keyboard-manager.ts";
@@ -33,11 +32,6 @@ function applyZoomStep(globeHandle: GlobeHandle, delta: number): void {
 	globeHandle.redraw();
 }
 
-/**
- * Determine the country at the center of the globe view.
- * Uses getAutoFocusedCountry() first (set by right-stick rotation),
- * falls back to computing it via hit detection on the screen center.
- */
 function getCenterCountry(
 	globeController: GlobeControllerHandle,
 	globeHandle: GlobeHandle,
@@ -49,9 +43,12 @@ function getCenterCountry(
 	return screenToCountryId(projection, state.width / 2, state.height / 2);
 }
 
+function isGlobeUnlocked(mode: string): boolean {
+	return mode === 'idle' || mode === 'focusing';
+}
+
 function GlobeInputHandler({ globeHandle, globeController }: GlobeInputHandlerProps) {
 	const world = useGameWorld();
-	const currentPhase = useEcsResource("currentPhase");
 
 	// Continuous analog polling for right stick rotation and trigger zoom
 	const globeHandleRef = useRef(globeHandle);
@@ -83,29 +80,34 @@ function GlobeInputHandler({ globeHandle, globeController }: GlobeInputHandlerPr
 			const controller = globeControllerRef.current;
 
 			if (handle && controller) {
-				// Gamepad right stick → globe rotation
-				const gamepad = getGamepadManager();
-				const analog = gamepad.getAnalogState();
-				const isStickRotating = Math.abs(analog.rightStickX) > 0.01 || Math.abs(analog.rightStickY) > 0.01;
+				const currentMode = worldRef.current.getResource("interactionState").mode;
+				const unlocked = isGlobeUnlocked(currentMode);
 
-				controller.applyAnalogRotation(analog.rightStickX, analog.rightStickY);
+				if (unlocked) {
+					// Gamepad right stick → globe rotation
+					const gamepad = getGamepadManager();
+					const analog = gamepad.getAnalogState();
+					const isStickRotating = Math.abs(analog.rightStickX) > 0.01 || Math.abs(analog.rightStickY) > 0.01;
 
-				if (isStickRotating) {
-					updateCenterFocus();
-				}
+					controller.applyAnalogRotation(analog.rightStickX, analog.rightStickY);
 
-				// Gamepad triggers → zoom
-				const zoomDelta = analog.rightTrigger - analog.leftTrigger;
-				controller.applyZoom(zoomDelta);
+					if (isStickRotating) {
+						updateCenterFocus();
+					}
 
-				// WASD → continuous globe rotation
-				const kb = getKeyboardManager();
-				const kbDx = (kb.isKeyPressed('d') ? 1 : 0) - (kb.isKeyPressed('a') ? 1 : 0);
-				const kbDy = (kb.isKeyPressed('s') ? 1 : 0) - (kb.isKeyPressed('w') ? 1 : 0);
+					// Gamepad triggers → zoom
+					const zoomDelta = analog.rightTrigger - analog.leftTrigger;
+					controller.applyZoom(zoomDelta);
 
-				if (kbDx !== 0 || kbDy !== 0) {
-					applyRotation(handle, kbDx * KEYBOARD_ROTATION_SPEED, kbDy * KEYBOARD_ROTATION_SPEED);
-					updateCenterFocus();
+					// WASD → continuous globe rotation
+					const kb = getKeyboardManager();
+					const kbDx = (kb.isKeyPressed('d') ? 1 : 0) - (kb.isKeyPressed('a') ? 1 : 0);
+					const kbDy = (kb.isKeyPressed('s') ? 1 : 0) - (kb.isKeyPressed('w') ? 1 : 0);
+
+					if (kbDx !== 0 || kbDy !== 0) {
+						applyRotation(handle, kbDx * KEYBOARD_ROTATION_SPEED, kbDy * KEYBOARD_ROTATION_SPEED);
+						updateCenterFocus();
+					}
 				}
 			}
 
@@ -116,13 +118,13 @@ function GlobeInputHandler({ globeHandle, globeController }: GlobeInputHandlerPr
 		return () => cancelAnimationFrame(frameId);
 	}, []);
 
-	// Left stick / d-pad / arrow key navigation (edge-triggered via useInputAction)
-	// Disabled during selectingTarget mode — CountryCard handles list navigation instead
+	// Left stick / d-pad / arrow key navigation
+	// Only active in idle/focusing modes — ControlBar handles navigation in other modes
 	const handleNavigate = useCallback((direction: Direction) => {
 		if (!globeController || !globeHandle) return;
 
 		const currentInteraction = world.getResource("interactionState");
-		if (currentInteraction.mode === 'selectingTarget' || currentInteraction.mode === 'settingAmount') return;
+		if (!isGlobeUnlocked(currentInteraction.mode)) return;
 
 		const currentId = world.getResource("selectedCountryId");
 		if (!currentId) {
@@ -145,9 +147,11 @@ function GlobeInputHandler({ globeHandle, globeController }: GlobeInputHandlerPr
 	useInputAction('NAVIGATE_LEFT', useCallback(() => handleNavigate('left'), [handleNavigate]));
 	useInputAction('NAVIGATE_RIGHT', useCallback(() => handleNavigate('right'), [handleNavigate]));
 
-	// Globe rotation (WASD / Shift+arrows) with auto-focus on center country
+	// Globe rotation (Shift+arrows) with auto-focus on center country
 	const handleRotate = useCallback((dx: number, dy: number) => {
 		if (!globeHandle || !globeController) return;
+		const currentInteraction = world.getResource("interactionState");
+		if (!isGlobeUnlocked(currentInteraction.mode)) return;
 		applyRotation(globeHandle, dx, dy);
 		const centered = getCenterCountry(globeController, globeHandle);
 		if (centered) {
@@ -162,19 +166,21 @@ function GlobeInputHandler({ globeHandle, globeController }: GlobeInputHandlerPr
 
 	// Keyboard-only zoom (Q/Z)
 	useInputAction('ZOOM_IN', useCallback(() => {
-		if (globeHandle) applyZoomStep(globeHandle, 30);
-	}, [globeHandle]));
+		if (!globeHandle) return;
+		const currentInteraction = world.getResource("interactionState");
+		if (!isGlobeUnlocked(currentInteraction.mode)) return;
+		applyZoomStep(globeHandle, 30);
+	}, [globeHandle, world]));
 
 	useInputAction('ZOOM_OUT', useCallback(() => {
-		if (globeHandle) applyZoomStep(globeHandle, -30);
-	}, [globeHandle]));
+		if (!globeHandle) return;
+		const currentInteraction = world.getResource("interactionState");
+		if (!isGlobeUnlocked(currentInteraction.mode)) return;
+		applyZoomStep(globeHandle, -30);
+	}, [globeHandle, world]));
 
-	useInputAction('END_TURN', useCallback(() => {
-		if (currentPhase === "planning") {
-			world.eventBus.publish("endTurn", undefined);
-		}
-	}, [world, currentPhase]));
-
+	// CONFIRM only handles idle mode (focus center country).
+	// ControlBar handles CONFIRM for focusing and beyond.
 	useInputAction('CONFIRM', useCallback(() => {
 		const currentInteraction = world.getResource("interactionState");
 		if (currentInteraction.mode === 'idle' && globeController && globeHandle) {
