@@ -12,33 +12,38 @@ const idlePrompts: ReadonlyArray<Prompt> = [
 	{ action: 'END_TURN', label: 'End Turn' },
 ];
 
-const countrySelectedPrompts: ReadonlyArray<Prompt> = [
-	{ action: 'CONFIRM', label: 'Action' },
+const focusingPrompts: ReadonlyArray<Prompt> = [
 	{ action: 'NAVIGATE_UP', label: 'Navigate' },
-	{ action: 'CANCEL_ORDER', label: 'Cancel Order' },
-	{ action: 'BACK', label: 'Deselect' },
+	{ action: 'CONFIRM', label: 'Select' },
+	{ action: 'BACK', label: 'Back' },
 	{ action: 'END_TURN', label: 'End Turn' },
+];
+
+const actionMenuPrompts: ReadonlyArray<Prompt> = [
+	{ action: 'NAVIGATE_UP', label: 'Navigate' },
+	{ action: 'CONFIRM', label: 'Select' },
+	{ action: 'BACK', label: 'Back' },
 ];
 
 const settingAmountPrompts: ReadonlyArray<Prompt> = [
 	{ action: 'INCREMENT', label: 'More' },
 	{ action: 'DECREMENT', label: 'Less' },
-	{ action: 'NAVIGATE_LEFT', label: 'Switch Type' },
 	{ action: 'CONFIRM', label: 'Confirm' },
 	{ action: 'BACK', label: 'Back' },
 ];
 
-const selectingTargetPrompts: ReadonlyArray<Prompt> = [
+const secondarySelectionPrompts: ReadonlyArray<Prompt> = [
 	{ action: 'NAVIGATE_UP', label: 'Navigate' },
-	{ action: 'CONFIRM', label: 'Select Target' },
+	{ action: 'CONFIRM', label: 'Select' },
 	{ action: 'BACK', label: 'Back' },
 ];
 
 const promptsByMode: Record<InteractionState['mode'], ReadonlyArray<Prompt>> = {
 	idle: idlePrompts,
-	countrySelected: countrySelectedPrompts,
+	focusing: focusingPrompts,
+	actionMenu: actionMenuPrompts,
 	settingAmount: settingAmountPrompts,
-	selectingTarget: selectingTargetPrompts,
+	secondarySelection: secondarySelectionPrompts,
 };
 
 function useContextualPrompts(interactionState: InteractionState): ReadonlyArray<Prompt> {
