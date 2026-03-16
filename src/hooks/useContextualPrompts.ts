@@ -26,8 +26,10 @@ const actionMenuPrompts: ReadonlyArray<Prompt> = [
 ];
 
 const settingAmountPrompts: ReadonlyArray<Prompt> = [
-	{ action: 'INCREMENT', label: 'More' },
-	{ action: 'DECREMENT', label: 'Less' },
+	{ action: 'NAVIGATE_UP', label: '+10' },
+	{ action: 'NAVIGATE_DOWN', label: '-10' },
+	{ action: 'NAVIGATE_LEFT', label: '-1' },
+	{ action: 'NAVIGATE_RIGHT', label: '+1' },
 	{ action: 'CONFIRM', label: 'Confirm' },
 	{ action: 'BACK', label: 'Back' },
 ];
