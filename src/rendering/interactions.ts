@@ -10,12 +10,15 @@ const TOUCH_DRAG_THRESHOLD = 10;
 const HOVER_THROTTLE_MS = 50;
 const PINCH_ZOOM_SENSITIVITY = 1.5;
 
-function applyRotationDelta(globe: GlobeContext, dx: number, dy: number): void {
+function applyRotationDelta(globe: GlobeContext, dx: number, dy: number, sensitivity = ROTATION_SENSITIVITY): void {
+	const zoomFactor = globe.config.minScale / globe.state.scale;
+	const sx = dx * sensitivity * zoomFactor;
+	const sy = dy * sensitivity * zoomFactor;
 	globe.state = {
 		...globe.state,
 		rotation: [
-			globe.state.rotation[0] + dx * ROTATION_SENSITIVITY,
-			Math.max(-90, Math.min(90, globe.state.rotation[1] - dy * ROTATION_SENSITIVITY)),
+			globe.state.rotation[0] + sx,
+			Math.max(-90, Math.min(90, globe.state.rotation[1] - sy)),
 		] as const,
 	};
 }

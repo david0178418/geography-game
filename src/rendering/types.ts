@@ -51,8 +51,8 @@ export type GlobeHighlight = {
 export const SECONDARY_HIGHLIGHT_COLOR = "#22d3ee";
 
 export const DEFAULT_CONFIG: GlobeConfig = {
-	minScale: 100,
-	maxScale: 1000,
+	minScale: 300,
+	maxScale: 4000,
 	baseColor: "#4a7c59",
 	borderColor: "#2d4a35",
 	oceanColor: "#1a3a5c",

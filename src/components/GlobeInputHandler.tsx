@@ -6,7 +6,7 @@ import { getKeyboardManager } from "@/input/keyboard-manager.ts";
 import { focusCountry, focusSecondaryOptionByCountryId } from "@/ecs/interaction-state.ts";
 import type { InteractionState } from "@/ecs/interaction-state.ts";
 import { screenToCountryId } from "@/rendering/hitDetection.ts";
-import { applyZoomDelta } from "@/rendering/interactions.ts";
+import { applyRotationDelta, applyZoomDelta } from "@/rendering/interactions.ts";
 import type { GlobeHandle } from "@/rendering/index.ts";
 import type { GlobeControllerHandle } from "@/rendering/globe-controller.ts";
 import type { Direction } from "@/rendering/navigation.ts";
@@ -18,13 +18,7 @@ interface GlobeInputHandlerProps {
 
 /** Apply rotation in degrees (not mouse pixels — bypasses ROTATION_SENSITIVITY). */
 function applyRotation(globeHandle: GlobeHandle, dx: number, dy: number): void {
-	globeHandle.globe.state = {
-		...globeHandle.globe.state,
-		rotation: [
-			globeHandle.globe.state.rotation[0] + dx,
-			Math.max(-90, Math.min(90, globeHandle.globe.state.rotation[1] - dy)),
-		] as const,
-	};
+	applyRotationDelta(globeHandle.globe, dx, dy, 1);
 	globeHandle.redraw();
 }
 
@@ -119,8 +113,8 @@ function GlobeInputHandler({ globeHandle, globeController }: GlobeInputHandlerPr
 
 					// WASD → continuous globe rotation
 					const kb = getKeyboardManager();
-					const kbDx = (kb.isKeyPressed('d') ? 1 : 0) - (kb.isKeyPressed('a') ? 1 : 0);
-					const kbDy = (kb.isKeyPressed('s') ? 1 : 0) - (kb.isKeyPressed('w') ? 1 : 0);
+					const kbDx = (kb.isKeyPressed('a') ? 1 : 0) - (kb.isKeyPressed('d') ? 1 : 0);
+					const kbDy = (kb.isKeyPressed('w') ? 1 : 0) - (kb.isKeyPressed('s') ? 1 : 0);
 
 					if (kbDx !== 0 || kbDy !== 0) {
 						applyRotation(handle, kbDx * KEYBOARD_ROTATION_SPEED, kbDy * KEYBOARD_ROTATION_SPEED);
@@ -177,10 +171,10 @@ function GlobeInputHandler({ globeHandle, globeController }: GlobeInputHandlerPr
 		}
 	}, [globeHandle, globeController, world]);
 
-	useInputAction('ROTATE_UP', useCallback(() => handleRotate(0, -10), [handleRotate]));
-	useInputAction('ROTATE_DOWN', useCallback(() => handleRotate(0, 10), [handleRotate]));
-	useInputAction('ROTATE_LEFT', useCallback(() => handleRotate(-10, 0), [handleRotate]));
-	useInputAction('ROTATE_RIGHT', useCallback(() => handleRotate(10, 0), [handleRotate]));
+	useInputAction('ROTATE_UP', useCallback(() => handleRotate(0, 10), [handleRotate]));
+	useInputAction('ROTATE_DOWN', useCallback(() => handleRotate(0, -10), [handleRotate]));
+	useInputAction('ROTATE_LEFT', useCallback(() => handleRotate(10, 0), [handleRotate]));
+	useInputAction('ROTATE_RIGHT', useCallback(() => handleRotate(-10, 0), [handleRotate]));
 
 	// Keyboard-only zoom (Q/Z)
 	useInputAction('ZOOM_IN', useCallback(() => {
