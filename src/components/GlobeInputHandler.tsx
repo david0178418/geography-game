@@ -3,7 +3,8 @@ import { useGameWorld } from "@/contexts/GameContext.ts";
 import { useInputAction } from "@/input/input-hooks.ts";
 import { getGamepadManager } from "@/input/gamepad-manager.ts";
 import { getKeyboardManager } from "@/input/keyboard-manager.ts";
-import { focusCountry } from "@/ecs/interaction-state.ts";
+import { focusCountry, focusSecondaryOptionByCountryId } from "@/ecs/interaction-state.ts";
+import type { InteractionState } from "@/ecs/interaction-state.ts";
 import { screenToCountryId } from "@/rendering/hitDetection.ts";
 import { applyZoomDelta } from "@/rendering/interactions.ts";
 import type { GlobeHandle } from "@/rendering/index.ts";
@@ -43,8 +44,25 @@ function getCenterCountry(
 	return screenToCountryId(projection, state.width / 2, state.height / 2);
 }
 
-function isGlobeUnlocked(mode: string): boolean {
+/** Rotation, zoom, and WASD are allowed in idle, focusing, and secondarySelection. */
+function isGlobeRotationAllowed(mode: InteractionState['mode']): boolean {
+	return mode === 'idle' || mode === 'focusing' || mode === 'secondarySelection';
+}
+
+/** D-pad / arrow key country-hopping is only allowed in idle and focusing. */
+function isGlobeNavigationAllowed(mode: InteractionState['mode']): boolean {
 	return mode === 'idle' || mode === 'focusing';
+}
+
+/** Update focus based on center country — either secondarySelection index or normal focus. */
+function applyFocusFromCenter(world: Parameters<typeof focusCountry>[0], countryId: string): void {
+	const state = world.getResource("interactionState");
+	if (state.mode === 'secondarySelection') {
+		const next = focusSecondaryOptionByCountryId(state, countryId);
+		if (next !== state) world.setResource("interactionState", next);
+	} else {
+		focusCountry(world, countryId);
+	}
 }
 
 function GlobeInputHandler({ globeHandle, globeController }: GlobeInputHandlerProps) {
@@ -71,7 +89,7 @@ function GlobeInputHandler({ globeHandle, globeController }: GlobeInputHandlerPr
 			const focused = getCenterCountry(controller, handle);
 			if (focused && focused !== lastFocused) {
 				lastFocused = focused;
-				focusCountry(worldRef.current, focused);
+				applyFocusFromCenter(worldRef.current, focused);
 			}
 		}
 
@@ -80,10 +98,10 @@ function GlobeInputHandler({ globeHandle, globeController }: GlobeInputHandlerPr
 			const controller = globeControllerRef.current;
 
 			if (handle && controller) {
-				const currentMode = worldRef.current.getResource("interactionState").mode;
-				const unlocked = isGlobeUnlocked(currentMode);
+				const currentState = worldRef.current.getResource("interactionState");
+				const rotationAllowed = isGlobeRotationAllowed(currentState.mode);
 
-				if (unlocked) {
+				if (rotationAllowed) {
 					// Gamepad right stick → globe rotation
 					const gamepad = getGamepadManager();
 					const analog = gamepad.getAnalogState();
@@ -124,7 +142,7 @@ function GlobeInputHandler({ globeHandle, globeController }: GlobeInputHandlerPr
 		if (!globeController || !globeHandle) return;
 
 		const currentInteraction = world.getResource("interactionState");
-		if (!isGlobeUnlocked(currentInteraction.mode)) return;
+		if (!isGlobeNavigationAllowed(currentInteraction.mode)) return;
 
 		const currentId = world.getResource("selectedCountryId");
 		if (!currentId) {
@@ -151,11 +169,11 @@ function GlobeInputHandler({ globeHandle, globeController }: GlobeInputHandlerPr
 	const handleRotate = useCallback((dx: number, dy: number) => {
 		if (!globeHandle || !globeController) return;
 		const currentInteraction = world.getResource("interactionState");
-		if (!isGlobeUnlocked(currentInteraction.mode)) return;
+		if (!isGlobeRotationAllowed(currentInteraction.mode)) return;
 		applyRotation(globeHandle, dx, dy);
 		const centered = getCenterCountry(globeController, globeHandle);
 		if (centered) {
-			focusCountry(world, centered);
+			applyFocusFromCenter(world, centered);
 		}
 	}, [globeHandle, globeController, world]);
 
@@ -168,14 +186,14 @@ function GlobeInputHandler({ globeHandle, globeController }: GlobeInputHandlerPr
 	useInputAction('ZOOM_IN', useCallback(() => {
 		if (!globeHandle) return;
 		const currentInteraction = world.getResource("interactionState");
-		if (!isGlobeUnlocked(currentInteraction.mode)) return;
+		if (!isGlobeRotationAllowed(currentInteraction.mode)) return;
 		applyZoomStep(globeHandle, 30);
 	}, [globeHandle, world]));
 
 	useInputAction('ZOOM_OUT', useCallback(() => {
 		if (!globeHandle) return;
 		const currentInteraction = world.getResource("interactionState");
-		if (!isGlobeUnlocked(currentInteraction.mode)) return;
+		if (!isGlobeRotationAllowed(currentInteraction.mode)) return;
 		applyZoomStep(globeHandle, -30);
 	}, [globeHandle, world]));
 

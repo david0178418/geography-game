@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { initGlobe } from "./rendering/index.ts";
 import type { GlobeHandle } from "./rendering/index.ts";
-import type { GlobeHighlight, MovementArrow } from "./rendering/types.ts";
+import type { MovementArrow } from "./rendering/types.ts";
+import { SECONDARY_HIGHLIGHT_COLOR } from "./rendering/types.ts";
 import { createGlobeController } from "./rendering/globe-controller.ts";
 import type { GlobeControllerHandle } from "./rendering/globe-controller.ts";
 import { createWorld } from "./ecs/world.ts";
 import type { GameWorld } from "./ecs/world.ts";
 import { spawnCountries } from "./ecs/spawnCountries.ts";
 import { registerTurnSystems } from "./ecs/turnLoop.ts";
-import { focusCountry } from "./ecs/interaction-state.ts";
+import { focusCountry, focusSecondaryOptionByCountryId } from "./ecs/interaction-state.ts";
 import { adjacency } from "./data/adjacency.ts";
 import { capitals } from "./data/capitals.ts";
 import { GameContext } from "./contexts/GameContext.ts";
@@ -72,15 +73,6 @@ function buildContestedCoords(world: GameWorld): ReadonlyArray<readonly [number,
 		.map((e) => e.components.country.capitalCoordinates);
 }
 
-function getValidTargets(world: GameWorld, countryId: string): ReadonlySet<string> {
-	const entityId = world.getResource("countryEntityMap").get(countryId);
-	if (entityId === undefined) return new Set();
-	const entity = world.getEntity(entityId);
-	if (!entity) return new Set();
-	const { adjacency: adj } = entity.components;
-	if (!adj) return new Set();
-	return new Set(adj.neighbors);
-}
 
 function App() {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -117,12 +109,14 @@ function App() {
 		let cachedControlMap = buildFactionControlMap(world);
 		let cachedArrows = buildMovementArrows(world, factionColors);
 		let cachedContestedCoords = buildContestedCoords(world);
+		let cachedValidTargets: ReadonlySet<string> = new Set();
+		let cachedValidOptionsRef: ReadonlyArray<string> | null = null;
 
 		function redrawWithHighlight() {
 			const selectedCountryId = world.getResource("selectedCountryId");
 			const interactionState = world.getResource("interactionState");
 
-			const isSelectingTarget = interactionState.mode === 'secondarySelection' && interactionState.role === 'target';
+			const isSecondarySelection = interactionState.mode === 'secondarySelection';
 
 			const baseHighlight = {
 				selectedCountryId,
@@ -130,17 +124,26 @@ function App() {
 				factionControlMap: cachedControlMap,
 				movementArrows: cachedArrows,
 				contestedCoords: cachedContestedCoords,
+				showCenterMarker: interactionState.mode !== 'idle',
 			};
 
-			const highlight: GlobeHighlight = isSelectingTarget
-				? {
-					...baseHighlight,
-					validTargets: getValidTargets(world, interactionState.countryId),
-					validTargetColor: "#22d3ee",
-				}
-				: baseHighlight;
+			if (!isSecondarySelection) {
+				cachedValidOptionsRef = null;
+				handle.redraw(baseHighlight);
+				return;
+			}
 
-			handle.redraw(highlight);
+			if (interactionState.validOptions !== cachedValidOptionsRef) {
+				cachedValidOptionsRef = interactionState.validOptions;
+				cachedValidTargets = new Set(interactionState.validOptions);
+			}
+
+			handle.redraw({
+				...baseHighlight,
+				validTargets: cachedValidTargets,
+				validTargetColor: SECONDARY_HIGHLIGHT_COLOR,
+				secondaryFocusedCountryId: interactionState.validOptions[interactionState.focusedIndex] ?? null,
+			});
 		}
 
 		function rebuildOverlayCache() {
@@ -149,6 +152,14 @@ function App() {
 		}
 
 		handle.onCountryClick((countryId) => {
+			const currentState = world.getResource("interactionState");
+			if (currentState.mode === 'secondarySelection') {
+				if (countryId) {
+					const next = focusSecondaryOptionByCountryId(currentState, countryId);
+					if (next !== currentState) world.setResource("interactionState", next);
+				}
+				return;
+			}
 			if (countryId) {
 				focusCountry(world, countryId);
 			} else {
@@ -175,7 +186,18 @@ function App() {
 			redrawWithHighlight();
 		});
 
+		let lastCenteredOption: string | null = null;
 		const unsubInteractionState = world.onResourceChange("interactionState", () => {
+			const state = world.getResource("interactionState");
+			if (state.mode === 'secondarySelection') {
+				const focusedId = state.validOptions[state.focusedIndex];
+				if (focusedId && focusedId !== lastCenteredOption) {
+					lastCenteredOption = focusedId;
+					controller.centerOnCountryById(focusedId);
+				}
+			} else {
+				lastCenteredOption = null;
+			}
 			redrawWithHighlight();
 		});
 

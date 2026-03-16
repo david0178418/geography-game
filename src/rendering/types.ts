@@ -44,7 +44,11 @@ export type GlobeHighlight = {
 	readonly contestedCoords: ReadonlyArray<readonly [number, number]>;
 	readonly validTargets?: ReadonlySet<string>;
 	readonly validTargetColor?: string;
+	readonly secondaryFocusedCountryId?: string | null;
+	readonly showCenterMarker?: boolean;
 };
+
+export const SECONDARY_HIGHLIGHT_COLOR = "#22d3ee";
 
 export const DEFAULT_CONFIG: GlobeConfig = {
 	minScale: 100,

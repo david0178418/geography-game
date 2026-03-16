@@ -242,6 +242,20 @@ function goBack(state: InteractionState, pendingOrderCount: number): Interaction
 	return transition ? transition(state) : { mode: 'idle' };
 }
 
+/**
+ * Attempt to focus a country in secondarySelection by its ID.
+ * Returns updated state if the country is a valid option and not already focused,
+ * or the original state if no change is needed.
+ */
+function focusSecondaryOptionByCountryId(
+	state: Extract<InteractionState, { readonly mode: 'secondarySelection' }>,
+	countryId: string,
+): InteractionState {
+	const idx = state.validOptions.indexOf(countryId);
+	if (idx === -1 || idx === state.focusedIndex) return state;
+	return { ...state, focusedIndex: idx };
+}
+
 export type { InteractionState, ActionType, SelectContext, ConfirmAmountResult, SecondarySelectionResult };
 export {
 	focusCountry,
@@ -253,5 +267,6 @@ export {
 	confirmAmount,
 	navigateSecondarySelection,
 	confirmSecondarySelection,
+	focusSecondaryOptionByCountryId,
 	goBack,
 };

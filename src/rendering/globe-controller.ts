@@ -15,6 +15,7 @@ export interface GlobeControllerHandle {
 	readonly applyAnalogRotation: (stickX: number, stickY: number) => void;
 	readonly hopToNeighbor: (currentCountryId: string, direction: Direction) => string | null;
 	readonly centerOnCountry: (lon: number, lat: number) => void;
+	readonly centerOnCountryById: (countryId: string) => void;
 	readonly applyZoom: (triggerValue: number) => void;
 	readonly getAutoFocusedCountry: () => string | null;
 	readonly update: () => void;
@@ -71,6 +72,11 @@ function createGlobeController(
 				handle.centerOnCountry(coords[0], coords[1]);
 			}
 			return neighborId;
+		},
+
+		centerOnCountryById(countryId: string) {
+			const coords = options.capitalCoords.get(countryId);
+			if (coords) handle.centerOnCountry(coords[0], coords[1]);
 		},
 
 		centerOnCountry(lon: number, lat: number) {
