@@ -194,9 +194,9 @@ const nameToNumericId = Object.fromEntries(
 );
 
 const countriesFeatureCollection = (() => {
-	const fc = feature(
+	const fc = feature<{ name: string }>(
 		topology,
-		topology.objects['countries'] as GeometryCollection,
+		topology.objects['countries'] as GeometryCollection<{ name: string }>,
 	);
 	// Fill in IDs for features that lack them in the Natural Earth dataset (e.g. Kosovo)
 	fc.features = fc.features.map((f) => {
