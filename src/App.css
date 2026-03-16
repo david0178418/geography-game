@@ -266,29 +266,104 @@
 	font-weight: 500;
 }
 
-.amount-stepper {
+/* D-Pad Amount Selector */
+.dpad-selector {
+	position: relative;
+	width: 120px;
+	height: 120px;
+	flex-shrink: 0;
+}
+
+.dpad-diamond {
+	position: absolute;
 	display: flex;
+	flex-direction: column;
 	align-items: center;
-	gap: 0.5rem;
-}
-
-.amount-stepper button {
-	padding: 0.3rem 0.6rem;
+	justify-content: center;
+	width: 38px;
+	height: 38px;
 	background: rgba(255, 255, 255, 0.1);
-	color: white;
 	border: 1px solid rgba(255, 255, 255, 0.2);
-	border-radius: 3px;
+	border-radius: 6px;
+	transform: rotate(45deg);
 	cursor: pointer;
-	font-size: 0.85rem;
+	color: #e0e0e0;
+	font-size: 0.7rem;
+	padding: 0;
+	line-height: 1;
+	transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
 
-.amount-stepper button:hover {
+.dpad-diamond-content {
+	transform: rotate(-45deg);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1px;
+	font-size: 0.65rem;
+	pointer-events: none;
+}
+
+.dpad-diamond-content .dpad-arrow {
+	font-size: 0.8rem;
+}
+
+.dpad-diamond:hover {
 	background: rgba(255, 255, 255, 0.2);
 }
 
-.amount-value {
-	min-width: 2rem;
-	text-align: center;
+.dpad-diamond.active {
+	border-color: rgba(34, 211, 238, 0.6);
+	background: rgba(34, 211, 238, 0.15);
+	box-shadow: 0 0 8px rgba(34, 211, 238, 0.3);
+}
+
+.dpad-diamond.disabled {
+	opacity: 0.3;
+	cursor: default;
+	pointer-events: none;
+}
+
+.dpad-diamond.up {
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%) rotate(45deg);
+}
+
+.dpad-diamond.down {
+	bottom: 0;
+	left: 50%;
+	transform: translateX(-50%) rotate(45deg);
+}
+
+.dpad-diamond.left {
+	left: 0;
+	top: 50%;
+	transform: translateY(-50%) rotate(45deg);
+}
+
+.dpad-diamond.right {
+	right: 0;
+	top: 50%;
+	transform: translateY(-50%) rotate(45deg);
+}
+
+.dpad-center {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 48px;
+	height: 48px;
+	background: rgba(0, 0, 0, 0.8);
+	border: 2px solid rgba(255, 255, 255, 0.3);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.4rem;
+	font-weight: bold;
+	color: #e0e0e0;
 }
 
 /* Touch-friendly sizing */
@@ -298,10 +373,19 @@
 		font-size: 0.9rem;
 	}
 
-	.amount-stepper button {
-		min-width: 44px;
-		min-height: 44px;
-		font-size: 1.1rem;
+	.dpad-diamond {
+		width: 44px;
+		height: 44px;
+	}
+
+	.dpad-selector {
+		width: 140px;
+		height: 140px;
+	}
+
+	.dpad-center {
+		width: 52px;
+		height: 52px;
 	}
 
 	.country-info-panel {
