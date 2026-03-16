@@ -108,11 +108,6 @@ function adjustAmount(state: InteractionState, delta: number, min: number, max: 
 	return { ...state, amount: newAmount };
 }
 
-function setAmount(state: InteractionState, amount: number, min: number, max: number): InteractionState {
-	if (state.mode !== 'settingAmount') return state;
-	return { ...state, amount: Math.max(min, Math.min(max, amount)) };
-}
-
 type ConfirmAmountResult =
 	| {
 		readonly outcome: 'complete';
@@ -263,7 +258,6 @@ export {
 	chooseAction,
 	navigateActionMenu,
 	adjustAmount,
-	setAmount,
 	confirmAmount,
 	navigateSecondarySelection,
 	confirmSecondarySelection,

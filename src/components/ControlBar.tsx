@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useGameWorld } from "@/contexts/GameContext.ts";
 import { useEcsResource } from "@/hooks/useEcsResource.ts";
 import { useInputAction } from "@/input/input-hooks.ts";
@@ -7,13 +7,14 @@ import {
 	chooseAction,
 	navigateActionMenu,
 	adjustAmount,
-	setAmount,
 	confirmAmount,
 	navigateSecondarySelection,
 	confirmSecondarySelection,
 	goBack,
 } from "@/ecs/interaction-state.ts";
 import type { InteractionState, ActionType, SelectContext } from "@/ecs/interaction-state.ts";
+import { DPadSelector } from "@/components/DPadSelector.tsx";
+import type { Direction } from "@/components/DPadSelector.tsx";
 import { submitOrder, popLastOrder } from "@/ecs/orders.ts";
 import { getAvailableInfluenceBudget } from "@/ecs/influenceBudget.ts";
 import { ButtonGlyphMap } from "@/components/button-prompts/button-glyph-map.ts";
@@ -172,6 +173,17 @@ function ControlBar() {
 	const prompts = useContextualPrompts(interactionState);
 	const playerFaction = factions.find((f) => f.isPlayer);
 
+	const activeDirTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const [activeDir, setActiveDir] = useState<Direction | null>(null);
+
+	const flashDirection = useCallback((dir: Direction) => {
+		if (activeDirTimerRef.current !== null) clearTimeout(activeDirTimerRef.current);
+		setActiveDir(dir);
+		activeDirTimerRef.current = setTimeout(() => {
+			setActiveDir(null);
+		}, 150);
+	}, []);
+
 	const isActionable = useMemo(() => {
 		if (interactionState.mode !== 'focusing' || currentPhase !== 'planning') return false;
 		const { actions } = getAvailableActionsForCountry(
@@ -256,6 +268,11 @@ function ControlBar() {
 	}, [world, interactionState, pendingOrders]);
 
 	const handleNavigateUp = useCallback(() => {
+		if (interactionState.mode === 'settingAmount') {
+			world.setResource("interactionState", adjustAmount(interactionState, 10, 1, maxAmount));
+			flashDirection('up');
+			return;
+		}
 		if (interactionState.mode === 'actionMenu') {
 			world.setResource("interactionState", navigateActionMenu(interactionState, -1));
 			return;
@@ -263,9 +280,14 @@ function ControlBar() {
 		if (interactionState.mode === 'secondarySelection') {
 			world.setResource("interactionState", navigateSecondarySelection(interactionState, -1));
 		}
-	}, [world, interactionState]);
+	}, [world, interactionState, maxAmount, flashDirection]);
 
 	const handleNavigateDown = useCallback(() => {
+		if (interactionState.mode === 'settingAmount') {
+			world.setResource("interactionState", adjustAmount(interactionState, -10, 1, maxAmount));
+			flashDirection('down');
+			return;
+		}
 		if (interactionState.mode === 'actionMenu') {
 			world.setResource("interactionState", navigateActionMenu(interactionState, 1));
 			return;
@@ -273,18 +295,24 @@ function ControlBar() {
 		if (interactionState.mode === 'secondarySelection') {
 			world.setResource("interactionState", navigateSecondarySelection(interactionState, 1));
 		}
-	}, [world, interactionState]);
+	}, [world, interactionState, maxAmount, flashDirection]);
 
-	const handleIncrement = useCallback(() => {
-		if (interactionState.mode === 'settingAmount') {
-			world.setResource("interactionState", adjustAmount(interactionState, 1, 1, maxAmount));
-		}
-	}, [world, interactionState, maxAmount]);
-
-	const handleDecrement = useCallback(() => {
+	const handleNavigateLeft = useCallback(() => {
 		if (interactionState.mode === 'settingAmount') {
 			world.setResource("interactionState", adjustAmount(interactionState, -1, 1, maxAmount));
+			flashDirection('left');
 		}
+	}, [world, interactionState, maxAmount, flashDirection]);
+
+	const handleNavigateRight = useCallback(() => {
+		if (interactionState.mode === 'settingAmount') {
+			world.setResource("interactionState", adjustAmount(interactionState, 1, 1, maxAmount));
+			flashDirection('right');
+		}
+	}, [world, interactionState, maxAmount, flashDirection]);
+
+	const handleAdjust = useCallback((delta: number) => {
+		world.setResource("interactionState", adjustAmount(interactionState, delta, 1, maxAmount));
 	}, [world, interactionState, maxAmount]);
 
 	const handleEndTurn = useCallback(() => {
@@ -298,8 +326,10 @@ function ControlBar() {
 	useInputAction('BACK', handleBack);
 	useInputAction('NAVIGATE_UP', handleNavigateUp);
 	useInputAction('NAVIGATE_DOWN', handleNavigateDown);
-	useInputAction('INCREMENT', handleIncrement);
-	useInputAction('DECREMENT', handleDecrement);
+	useInputAction('NAVIGATE_LEFT', handleNavigateLeft);
+	useInputAction('NAVIGATE_RIGHT', handleNavigateRight);
+	useInputAction('INCREMENT', handleNavigateRight);
+	useInputAction('DECREMENT', handleNavigateLeft);
 	useInputAction('END_TURN', handleEndTurn);
 
 	// --- Render ---
@@ -366,17 +396,12 @@ function ControlBar() {
 						<span className="action-type-label">
 							{interactionState.actionType === 'move' ? 'Move Troops' : 'Spend Influence'}
 						</span>
-						<div className="amount-stepper">
-							<button onClick={() => world.setResource("interactionState", adjustAmount(interactionState, -1, 1, maxAmount))}>-</button>
-							<span className="amount-value">{interactionState.amount}</span>
-							<button onClick={() => world.setResource("interactionState", adjustAmount(interactionState, 1, 1, maxAmount))}>+</button>
-						</div>
-						<input
-							type="range"
-							min={1}
-							max={Math.max(1, maxAmount)}
+						<DPadSelector
 							value={interactionState.amount}
-							onChange={(e) => world.setResource("interactionState", setAmount(interactionState, Number(e.target.value), 1, maxAmount))}
+							min={1}
+							max={maxAmount}
+							onAdjust={handleAdjust}
+							activeDirection={activeDir}
 						/>
 						<button className="control-bar-btn primary" onClick={handleConfirm}>Confirm</button>
 						<button className="control-bar-btn" onClick={handleBack}>Back</button>
