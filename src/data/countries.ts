@@ -188,10 +188,25 @@ const numericToAlpha3: Record<string, { alpha3: string; name: string }> = {
 	"900": { alpha3: "XKX", name: "Kosovo" },
 } as const;
 
-const countriesFeatureCollection = feature(
-	topology,
-	topology.objects['countries'] as GeometryCollection,
+/** Reverse lookup: country name → numeric id, derived from numericToAlpha3 */
+const nameToNumericId = Object.fromEntries(
+	Object.entries(numericToAlpha3).map(([id, { name }]) => [name, id]),
 );
+
+const countriesFeatureCollection = (() => {
+	const fc = feature(
+		topology,
+		topology.objects['countries'] as GeometryCollection,
+	);
+	// Fill in IDs for features that lack them in the Natural Earth dataset (e.g. Kosovo)
+	fc.features = fc.features.map((f) => {
+		if (f.id !== undefined) return f;
+		const name = typeof f.properties?.name === 'string' ? f.properties.name : undefined;
+		const numericId = name ? nameToNumericId[name] : undefined;
+		return numericId ? { ...f, id: numericId } : f;
+	});
+	return fc;
+})();
 
 /**
  * Country features extracted from the world-atlas 110m TopoJSON,
